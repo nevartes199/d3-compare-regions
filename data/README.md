@@ -14,3 +14,5 @@ PROVINCES_FOR='["USA", "JPN", "GBR", "CHN"]'
 ```
 
 A lot of other options can be changed in the mapshaper script and you can find more info about [here](https://github.com/mbloch/mapshaper/wiki/Command-Reference).
+
+To visualize the generated map and its layers, goto http://mapshaper.org/ and import the `map.json`. Use the "i" button to select each shape and the top center dropdown to select each layer.

@@ -33,6 +33,6 @@ mapshaper \
     -rename-fields target=countries region_id=region-code,sub_region=sub-region,sub_region_id=sub-region-code \
     \
     -dissolve sub_region_id target=countries copy-fields=region,region_id,sub_region,sub_region_id no-replace name=sub_regions \
-    -dissolve region_id target=sub_regions copy-fields=region_id no-replace name=regions \
+    -dissolve region_id target=sub_regions copy-fields=region no-replace name=regions \
     \
     -o ./map.json format=topojson target=regions,sub_regions,countries,states bbox prettify force
