@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PROVINCES='["USA", "JPN", "GBR", "CHN"]'
+PROVINCES_FOR='["USA", "JPN", "GBR", "CHN"]'
 MIN_AREA=10000000000
 
 command -v npm >/dev/null 2>&1 || {
@@ -23,7 +23,7 @@ mapshaper \
     -filter target=raw 'country_code!=="ATA"' \
     -filter target=raw 'type_en!=="Overseas department"' \
     -filter-fields target=raw country,country_code,state,state_code \
-    -filter target=raw "$PROVINCES.indexOf(this.properties.country_code) !== -1" no-replace name=states \
+    -filter target=raw "$PROVINCES_FOR.indexOf(this.properties.country_code) !== -1" no-replace name=states \
     \
     -dissolve country_code target=raw no-replace copy-fields=country name=countries \
     -filter-slivers target=countries min-area=1 remove-empty \
