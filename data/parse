@@ -23,9 +23,10 @@ mapshaper \
     -filter target=raw 'country_code!=="ATA"' \
     -filter target=raw 'type_en!=="Overseas department"' \
     -filter-fields target=raw country,country_code,state,state_code \
-    -filter target=raw "$PROVINCES_FOR.indexOf(this.properties.country_code) !== -1" no-replace name=states \
     \
+    -filter target=raw "$PROVINCES_FOR.indexOf(this.properties.country_code) !== -1" no-replace name=states \
     -dissolve country_code target=raw no-replace copy-fields=country name=countries \
+    \
     -filter-slivers target=countries min-area=1 remove-empty \
     -filter target=countries "this.area > $MIN_AREA" \
     \
@@ -33,6 +34,21 @@ mapshaper \
     -rename-fields target=countries region_id=region-code,sub_region=sub-region,sub_region_id=sub-region-code \
     \
     -dissolve sub_region_id target=countries copy-fields=region,region_id,sub_region,sub_region_id no-replace name=sub_regions \
-    -dissolve region_id target=sub_regions copy-fields=region no-replace name=regions \
     \
-    -o ./map.json format=topojson target=regions,sub_regions,countries,states bbox prettify force
+    -filter target=sub_regions 'sub_region === "Northern America"' no-replace name=north-america \
+    -filter target=sub_regions 'sub_region === "Caribbean" || sub_region === "Central America"' no-replace name=central-america \
+    -filter target=sub_regions 'sub_region === "South America"' no-replace name=south-america \
+    \
+    -filter-fields target=north-america,central-america,south-america sub_region,sub_region_id \
+    -rename-fields target=north-america,central-america,south-america region=sub_region,region_id=sub_region_id \
+    \
+    -each target=central-america 'region="Central America"; region_id="013"' \
+    -dissolve region_id target=central-america copy-fields=region,region_id \
+    -each target=north-america 'region="North America"' \
+    \
+    -filter target=sub_regions 'region !== "Americas"' no-replace name=continents \
+    -dissolve region_id target=continents copy-fields=region,region_id \
+    \
+    -merge-layers target=continents,north-america,central-america,south-america name=regions \
+    \
+    -o ./map.json format=topojson target=regions,countries,states bbox prettify force
