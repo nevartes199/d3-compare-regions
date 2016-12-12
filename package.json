@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "main": "src/main.ts",
   "scripts": {
+    "parse": "cd ./data && ./parse",
+    "start": "npm run server",
+    "start:hmr": "npm run server-dashboard -- --hot",
+    "server": "webpack-dev-server --inline --port 8080",
+    "server-dashboard": "webpack-dashboard -- webpack-dev-server --inline --port 8080",
+    "build": "rimraf dist && npm run parse && webpack --progress --profile --bail",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -17,8 +23,11 @@
   },
   "homepage": "https://github.com/snolflake/d3-region-comparison#readme",
   "dependencies": {
+    "@types/node": "^0.0.2",
     "d3": "^4.4.0",
     "mapshaper": "^0.3.40",
+    "node-sass": "^4.0.0",
+    "raw-loader": "^0.5.1",
     "topojson": "^2.x",
     "typescript": "^2.1.x",
     "webpack": "^2.1.0-beta"
@@ -26,7 +35,15 @@
   "devDependencies": {
     "@types/d3": "^4.4.x",
     "@types/webpack": "^2.x",
-    "ts-node": "^1.7.2",
+    "awesome-typescript-loader": "^3.0.0-beta.12",
+    "copy-webpack-plugin": "^4.0.1",
+    "css-loader": "^0.26.1",
+    "html-webpack-plugin": "^2.24.1",
+    "json-loader": "^0.5.4",
+    "postcss-loader": "^1.2.0",
+    "sass-loader": "^4.0.2",
+    "style-loader": "^0.13.1",
+    "tslint": "^4.0.2",
     "webpack-dashboard": "^0.2.x",
     "webpack-dev-server": "^2.1.0-beta"
   }

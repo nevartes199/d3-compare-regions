@@ -6,7 +6,15 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
-    "baseUrl": "./",
+    "baseUrl": ".",
+    "paths": {
+      "data": ["data"],
+      "components": ["src/components"],
+      "styles": ["src/styles"]
+    },
+    "types": [
+      "node"
+    ],
     "typeRoots": [
       "./node_modules/@types",
       "./definitions"
