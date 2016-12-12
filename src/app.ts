@@ -1,6 +1,6 @@
 import * as d3 from 'd3'
 
-import 'styles/viz.scss'
+import 'styles/app.scss'
 import { ComponentBase, Map } from 'components'
 import { Data } from './data'
 
