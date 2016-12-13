@@ -15,14 +15,20 @@ command -v mapshaper >/dev/null 2>&1 || {
 }
 
 mapshaper \
+    -i ./ne_10m_admin_1_states_provinces/ne_10m_admin_1_states_provinces.shp snap \
+    -simplify weighted 2.2% \
+    -o ./states-simplified.json format=geojson force
+
+mapshaper \
     -i \
-        ./ne_10m_admin_1_states_provinces/ne_10m_admin_1_states_provinces.shp \
+        ./states-simplified.json \
         ./ne_50m_admin_0_countries/ne_50m_admin_0_countries.shp \
         snap combine-files \
     -rename-layers raw,50m \
     -rename-fields target=raw country_code=adm0_a3,country=admin,state=name,state_code=postal \
     \
-    -simplify weighted 3% \
+    -erase bbox=-172,62.9,-168.5,63.9 \
+    -clip bbox=-181,-57,181,87 \
     -each target=raw 'country="French Guiana"; country_code="GUF"' where='country_code==="FRA" && state_code==="CY"' \
     -each target=raw 'country_code="KAZ"' where='country_code==="KAB"' \
     -filter target=raw 'country_code!=="ATA"' \
@@ -30,8 +36,9 @@ mapshaper \
     -filter-fields target=raw country,country_code,state,state_code \
     \
     -filter target=raw "$HAS_STATES_LAYER" no-replace name=states \
+    -each target=states "type='state'" \
     -dissolve country_code target=raw no-replace copy-fields=country name=countries \
-    -each target=countries where="$HAS_STATES_LAYER" 'this.properties["states"]=true' \
+    -each target=countries "has_states=$HAS_STATES_LAYER, type='country'" \
     \
     -filter-slivers target=countries min-area=1 remove-empty \
     -filter-islands target=countries min-area="$MIN_AREA" remove-empty \
@@ -58,5 +65,8 @@ mapshaper \
     -dissolve region target=standard-regions \
     \
     -merge-layers target=standard-regions,north-america,central-america,south-america name=regions \
+    -each target=regions "type='region'" \
     \
     -o ./map.json format=topojson target=regions,countries,states bbox force
+
+rm -f ./states-simplified.json

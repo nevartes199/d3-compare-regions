@@ -5,11 +5,11 @@ npm install --global mapshaper
 
 In your terminal go to this `data` folder and run the command './parse'. A file named `map.json` should be generated.
 
-You can edit the [`parse`](./parse) file to select which countries should have a state/province layer, Use the [country's Alpha-3 code](https://en.wikipedia.org/wiki/ISO_3166-1#Current_codes) fot that like this:
+You can edit the [`parse`](./parse) file to select which countries should have a state/province layer. Simply add the country [Alpha-3 code](https://en.wikipedia.org/wiki/ISO_3166-1#Current_codes) to the list like this:
 ```
 #!/usr/bin/env bash
 
-PROVINCES_FOR='["USA", "JPN", "GBR", "CHN"]'
+STATES_FOR='["USA", "JPN", "GBR", "CHN"]'
 ...
 ```
 

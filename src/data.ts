@@ -2,23 +2,24 @@ const MAP_DATA = require('data/map.json')
 
 import * as topo from 'topojson-client'
 
-export type LayerType = 'regions' | 'countries' | 'states'
-
 export class Data {
 	construct() {
 		console.info('Map data loaded!', MAP_DATA)
 	}
 	
-	getShapes(type: LayerType, filter?: (feature: Object) => boolean) {
-		let features = this.getFeatures(type, filter)
-		return features
+	getShapes(type: LayerType, filter?: (properties: Object) => boolean) {
+		return this.getFeatures(type, filter)
 	}
 	
-	getBoundaries(type: LayerType, filter?: (feature: Object) => boolean) {
-		let features = this.getFeatures(type, filter)
+	getBoundaries(type: LayerType, filter?: (properties: Object) => boolean) {
+		return this.getFeatures(type, filter)
 	}
 	
-	getFeatures(type: LayerType, filter?: (feature: Object) => boolean) {
+	getMapTransforms() {
+		return MAP_DATA.bbox // transform as MapTransform
+	}
+	
+	getFeatures(type: LayerType, filter?: (properties: Object) => boolean) {
 		let target: any[]
 		switch (type) {
 			case 'regions':
@@ -30,12 +31,17 @@ export class Data {
 				throw `Unknown layer type ${type}`
 		}
 		
-		let geoFeature = topo.feature(MAP_DATA, target)
+		let object = topo.feature(MAP_DATA, target)
+		let features = object.features
 		
-		if (!geoFeature.features) {
-			console.error('No features found', geoFeature)
+		if (!features) {
+			console.error('No features found', object)
 		}
 		
-		return geoFeature.features
+		if (filter) {
+			features = features.filter(f => filter(f['properties']))
+		}
+		
+		return features
 	}
 }

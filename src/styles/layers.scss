@@ -1,0 +1,27 @@
+@import "./variables";
+
+.layer {
+  color: $layer-disabled;
+  pointer-events: none !important;
+
+  &.current {
+    color: $layer-enabled;
+
+    & > * {
+      pointer-events: fill !important;
+      cursor: pointer;
+
+      &:hover {
+        color: $item-hover;
+      }
+
+      &.selected {
+        color: $item-selected;
+      }
+    }
+  }
+}
+
+.region path {
+  fill: currentColor;
+}

@@ -1,47 +1,42 @@
 import * as d3 from 'd3'
 
-import { ComponentBase } from 'components'
+import { ComponentBase, MapLayer, D3Selection, Regions, Countries, States } from 'components'
 
 const EQR_WIDTH = 640
 const LNG_OFFSET = -11
 const PRECISION = .05
+const LAYER_ORDER: LayerType[] = ['regions', 'countries', 'states']
+const SIDEBAR_WIDTH = 300
+
+export interface MapSelection {
+	type: LayerType,
+	selection: D3Selection,
+	data: any
+}
 
 export class Map extends ComponentBase {
 	wrapper = { type: 'svg', id: 'map' }
 	
 	projection: d3.GeoProjection
 	path: d3.GeoPath<any, d3.GeoPermissibleObjects>
+	zoom: d3.ZoomBehavior<any, any>
+	
+	layers: MapLayer[] = []
+	layersRoot: D3Selection
+	current: MapSelection = {
+		type: 'regions',
+		selection: d3.select(null),
+		data: null
+	}
 	
 	onInit() {
 		this.initGeo()
-		
-		let ocean = this.root
-			.append('rect')
-			.classed('ocean', true)
-			.on('click', () => {
-				console.log('clicked outside')
-			})
-		
-		let regionsData = this.data.getFeatures('regions')
-		let regions = this.root
-			.append('g')
-			.classed('regions', true)
-			.selectAll('.region')
-			.data(regionsData)
-			.enter()
-			.append('g')
-			.classed('region', true)
-			.attr('data-region', d => d['properties']['region'])
-			.append('path')
-		
-		this.addResizer((rect) => {
-			ocean
-				.attr('width', rect.width)
-				.attr('height', rect.height)
-			
-			regions
-				.attr('d', this.path)
-		})
+		this.initLayers()
+		this.initZoom()
+	}
+	
+	onResize(rect) {
+		this.layers.forEach(l => l.resize(rect))
 	}
 	
 	initGeo() {
@@ -55,7 +50,110 @@ export class Map extends ComponentBase {
 		this.addResizer((rect) => {
 			this.projection
 				.scale((rect.width / EQR_WIDTH) * 100)
-				.translate([rect.width / 2, rect.height / 2]);
+				.translate([rect.width / 2, rect.height / 2])
 		})
+	}
+	
+	initLayers() {
+		let ocean = this.root
+			.append('rect')
+			.classed('ocean', true)
+			.on('click', this.deselect)
+		
+		this.addResizer((rect) => {
+			ocean
+				.attr('width', rect.width)
+				.attr('height', rect.height)
+		})
+		
+		this.layersRoot = this.root
+			.append('g')
+			.classed('layers', true)
+		
+		this.updateLayers()
+	}
+	
+	initZoom() {
+		let zoomCallback = this.onZoom
+		this.zoom = d3.zoom()
+			.scaleExtent([1, 8])
+			.on('zoom', function () {
+				zoomCallback(d3.event.transform)
+			})
+	}
+	
+	select = (feature: any, element: Element) => {
+		if (this.current.selection.node() === element) {
+			this.deselect()
+			return
+		}
+		
+		this.current.selection.classed('selected', false)
+		
+		this.zoomIn(feature)
+		this.current.selection = d3.select(element)
+		this.current.selection.classed('selected', true)
+	}
+	
+	deselect = () => {
+		this.zoomReset() // Replace with zoom out
+		this.current.selection.classed('selected', false)
+		this.current.selection = d3.select(null)
+	}
+	
+	onZoom = (transform: d3.ZoomTransform) => {
+		this.layersRoot.attr('transform', transform as any)
+	}
+	
+	zoomIn = (feature: any) => {
+		let width = this.rect.width - SIDEBAR_WIDTH,
+			height = this.rect.height,
+			bounds = this.path.bounds(feature),
+			dx = bounds[1][0] - bounds[0][0],
+			dy = bounds[1][1] - bounds[0][1],
+			x = (bounds[0][0] + bounds[1][0]) / 2,
+			y = (bounds[0][1] + bounds[1][1]) / 2,
+			scale = Math.max(1, Math.min(8, 0.9 / Math.max(dx / width, dy / height))),
+			translate = [width / 2 - scale * x, height / 2 - scale * y]
+		
+		let transformation = d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+		this.root.transition()
+			.duration(750)
+			.call(this.zoom.transform, transformation)
+	}
+
+	zoomReset() {
+		this.root.transition()
+			.duration(750)
+			.call(this.zoom.transform, d3.zoomIdentity)
+	}
+	
+	updateLayers(change?: number) {
+		let idx = LAYER_ORDER.indexOf(this.current.type)
+		if (change) {
+			let newIdx = Math.min(0, Math.max(LAYER_ORDER.length, idx + change))
+			if (newIdx !== idx) {
+				idx = newIdx
+				this.current.type = LAYER_ORDER[idx]
+			}
+		}
+		
+		if (!this.layers[idx]) {
+			this.layers[idx] = this.initLayer(this.current.type)
+		}
+	}
+	
+	initLayer(type: LayerType) {
+		let ctors = {
+			'regions': Regions,
+			'countries': Countries,
+			'states': States,
+		}
+		
+		let layer = new ctors[type](this.layersRoot, this)
+		layer.init()
+		layer.select()
+		
+		return layer
 	}
 }
