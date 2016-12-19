@@ -1,10 +1,10 @@
+declare const WORLD: any
 const MAP_DATA = require('data/map.json')
 
 import * as topo from 'topojson-client'
 
 export class Data {
-	construct() {
-		console.info('Map data loaded!', MAP_DATA)
+	constructor() {
 	}
 	
 	getShapes(type: LayerType, filter?: (properties: Object) => boolean) {
@@ -20,8 +20,9 @@ export class Data {
 	}
 	
 	getFeatures(type: LayerType, filter?: (properties: Object) => boolean) {
-		let target: any[]
+		let target
 		switch (type) {
+			case 'world':
 			case 'regions':
 			case 'countries':
 			case 'states':
@@ -39,9 +40,9 @@ export class Data {
 		}
 		
 		if (filter) {
-			features = features.filter(f => filter(f['properties']))
+			features = features.filter(f => filter(f))
 		}
 		
-		return features
+		return features as Feature[]
 	}
 }

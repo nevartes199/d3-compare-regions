@@ -1,17 +1,19 @@
 import * as d3 from 'd3'
 
-import { ComponentBase, MapLayer, D3Selection, Regions, Countries, States } from 'components'
+import { ComponentBase, MapLayer, D3Selection } from 'components'
 
 const EQR_WIDTH = 640
 const LNG_OFFSET = -11
 const PRECISION = .05
-const LAYER_ORDER: LayerType[] = ['regions', 'countries', 'states']
+const LAYER_ORDER: LayerType[] = ['world', 'regions', 'countries', 'states']
 const SIDEBAR_WIDTH = 300
+const ZOOM_DURATION = 750
 
 export interface MapSelection {
 	type: LayerType,
 	selection: D3Selection,
-	data: any
+	data: any,
+	layer: MapLayer
 }
 
 export class Map extends ComponentBase {
@@ -23,11 +25,6 @@ export class Map extends ComponentBase {
 	
 	layers: MapLayer[] = []
 	layersRoot: D3Selection
-	current: MapSelection = {
-		type: 'regions',
-		selection: d3.select(null),
-		data: null
-	}
 	
 	onInit() {
 		this.initGeo()
@@ -70,7 +67,12 @@ export class Map extends ComponentBase {
 			.append('g')
 			.classed('layers', true)
 		
-		this.updateLayers()
+		this.layers = [
+			this.initLayer(LAYER_ORDER[0]),
+			this.initLayer(LAYER_ORDER[1]),
+			this.initLayer(LAYER_ORDER[2]),
+			this.initLayer(LAYER_ORDER[3]),
+		]
 	}
 	
 	initZoom() {
@@ -82,23 +84,12 @@ export class Map extends ComponentBase {
 			})
 	}
 	
-	select = (feature: any, element: Element) => {
-		if (this.current.selection.node() === element) {
-			this.deselect()
-			return
-		}
+	select = (feature: Feature, path: SVGPathElement) => {
 		
-		this.current.selection.classed('selected', false)
-		
-		this.zoomIn(feature)
-		this.current.selection = d3.select(element)
-		this.current.selection.classed('selected', true)
 	}
 	
 	deselect = () => {
 		this.zoomReset() // Replace with zoom out
-		this.current.selection.classed('selected', false)
-		this.current.selection = d3.select(null)
 	}
 	
 	onZoom = (transform: d3.ZoomTransform) => {
@@ -118,41 +109,19 @@ export class Map extends ComponentBase {
 		
 		let transformation = d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
 		this.root.transition()
-			.duration(750)
+			.duration(ZOOM_DURATION)
 			.call(this.zoom.transform, transformation)
 	}
 
 	zoomReset() {
 		this.root.transition()
-			.duration(750)
+			.duration(ZOOM_DURATION)
 			.call(this.zoom.transform, d3.zoomIdentity)
 	}
 	
-	updateLayers(change?: number) {
-		let idx = LAYER_ORDER.indexOf(this.current.type)
-		if (change) {
-			let newIdx = Math.min(0, Math.max(LAYER_ORDER.length, idx + change))
-			if (newIdx !== idx) {
-				idx = newIdx
-				this.current.type = LAYER_ORDER[idx]
-			}
-		}
-		
-		if (!this.layers[idx]) {
-			this.layers[idx] = this.initLayer(this.current.type)
-		}
-	}
-	
 	initLayer(type: LayerType) {
-		let ctors = {
-			'regions': Regions,
-			'countries': Countries,
-			'states': States,
-		}
-		
-		let layer = new ctors[type](this.layersRoot, this)
+		let layer = new MapLayer(this.layersRoot, this, type)
 		layer.init()
-		layer.select()
 		
 		return layer
 	}

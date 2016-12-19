@@ -1,12 +1,16 @@
-declare type LayerType = 'regions' | 'countries' | 'states'
+declare type LayerType = 'world' | 'regions' | 'countries' | 'states'
 
-declare interface TopoObject<DataType> {
-	features: TopoFeature<DataType>[]
+declare interface Object {
+	features: Feature[]
 }
 
-declare interface TopoFeature<DataType> {
+declare interface Feature {
 	arcs: any[]
-	properties: DataType
+	properties: {
+		name: string
+		type: string
+		has_sublayer: boolean
+	}
 }
 
 declare interface RegionData {
@@ -16,9 +20,11 @@ declare interface RegionData {
 declare interface CountryData extends RegionData {
 	country: string
 	country_code: string
+	region: string
 }
 
-declare interface StateData extends CountryData {
+declare interface StateData {
+	country: string
 	state: string
 	state_code: string
 }

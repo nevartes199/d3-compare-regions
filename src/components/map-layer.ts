@@ -2,16 +2,11 @@ import 'styles/layers.scss'
 
 import { ComponentBase, D3Selection, Map } from 'components'
 
-export abstract class MapLayer extends ComponentBase {
+export class MapLayer extends ComponentBase {
 	animateBoundaries = false
 	features: any
 	
-	constructor(
-		root: D3Selection,
-		private map: Map,
-		private type: LayerType,
-		private name: string
-	) {
+	constructor(root: D3Selection, private map: Map, private type: LayerType) {
 		super(root)
 		this.wrapper = {
 			type: 'g',
@@ -21,37 +16,24 @@ export abstract class MapLayer extends ComponentBase {
 	
 	onInit() {
 		this.features = this.data.getFeatures(this.type)
-		let itemClass = this.name
 		
 		let selectionCallback = this.map.select
 		
 		let itemGroups = this.root
-			.selectAll('.' + itemClass)
+			.selectAll('g')
 			.data(this.features)
 			.enter()
 			.append('g')
-			.classed(itemClass, true)
-			.attr('data-name', d => d[this.name])
-			.on('click', function (data) {
-				selectionCallback(data, this as Element)
-			})
+			.attr('data-name', (d: Feature) => d.properties.name)
 		
-		let itemShapes = itemGroups.append('path')
+		let itemShapes = itemGroups
+			.append('path')
+			.on('click', function (data) {
+				selectionCallback(data as Feature, this as SVGPathElement)
+			})
 		
 		this.addResizer(() => {
 			itemShapes.attr('d', this.map.path)
 		})
-	}
-	
-	select() {
-		this.updateSelection(true)
-	}
-	
-	deselect() {
-		this.updateSelection(false)
-	}
-	
-	private updateSelection(selected: boolean) {
-		this.root.classed('current', selected)
 	}
 }

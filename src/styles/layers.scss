@@ -2,26 +2,42 @@
 
 .layer {
   color: $layer-disabled;
-  pointer-events: none !important;
 
   &.current {
-    color: $layer-enabled;
+    fill: $layer-enabled;
 
     & > * {
       pointer-events: fill !important;
       cursor: pointer;
 
       &:hover {
-        color: $item-hover;
+        fill: $item-hover;
       }
 
       &.selected {
-        color: $item-selected;
+        fill: $item-selected;
       }
     }
   }
 }
 
-.region path {
-  fill: currentColor;
+path {
+  fill: #333 !important;
+}
+
+path:hover {
+  fill: #111 !important;
+}
+
+.regions path {
+  stroke: cyan;
+  stroke-width: 3px;
+}
+
+.countries path {
+  stroke: green;
+}
+
+.states path {
+  stroke: red;
 }
