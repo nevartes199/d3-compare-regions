@@ -9,12 +9,7 @@ const LAYER_ORDER: LayerType[] = ['world', 'regions', 'countries', 'states']
 const SIDEBAR_WIDTH = 300
 const ZOOM_DURATION = 750
 
-export interface MapSelection {
-	type: LayerType,
-	selection: D3Selection,
-	data: any,
-	layer: MapLayer
-}
+export type MapSelection = d3.Selection<SVGPathElement, Feature, any, any>
 
 export class Map extends ComponentBase {
 	wrapper = { type: 'svg', id: 'map' }
@@ -22,6 +17,8 @@ export class Map extends ComponentBase {
 	projection: d3.GeoProjection
 	path: d3.GeoPath<any, d3.GeoPermissibleObjects>
 	zoom: d3.ZoomBehavior<any, any>
+	
+	zoomLevel = 0
 	
 	layers: MapLayer[] = []
 	layersRoot: D3Selection
@@ -57,22 +54,19 @@ export class Map extends ComponentBase {
 			.classed('ocean', true)
 			.on('click', this.deselect)
 		
-		this.addResizer((rect) => {
-			ocean
-				.attr('width', rect.width)
-				.attr('height', rect.height)
-		})
-		
 		this.layersRoot = this.root
 			.append('g')
 			.classed('layers', true)
 		
 		this.layers = [
-			this.initLayer(LAYER_ORDER[0]),
-			this.initLayer(LAYER_ORDER[1]),
-			this.initLayer(LAYER_ORDER[2]),
-			this.initLayer(LAYER_ORDER[3]),
+			new MapLayer(this.layersRoot, this, LAYER_ORDER[0])
 		]
+		
+		this.addResizer((rect) => {
+			ocean
+				.attr('width', rect.width)
+				.attr('height', rect.height)
+		})
 	}
 	
 	initZoom() {
@@ -85,21 +79,23 @@ export class Map extends ComponentBase {
 	}
 	
 	select = (feature: Feature, path: SVGPathElement) => {
-		
+		console.info(feature, path)
+		this.zoomIn(feature)
 	}
 	
 	deselect = () => {
-		this.zoomReset() // Replace with zoom out
+		console.log('zoom out')
+		// this.zoomReset() // Replace with zoom out
 	}
 	
 	onZoom = (transform: d3.ZoomTransform) => {
 		this.layersRoot.attr('transform', transform as any)
 	}
 	
-	zoomIn = (feature: any) => {
+	zoomIn = (feature: Feature) => {
 		let width = this.rect.width - SIDEBAR_WIDTH,
 			height = this.rect.height,
-			bounds = this.path.bounds(feature),
+			bounds = this.path.bounds(feature as any),
 			dx = bounds[1][0] - bounds[0][0],
 			dy = bounds[1][1] - bounds[0][1],
 			x = (bounds[0][0] + bounds[1][0]) / 2,
@@ -117,12 +113,5 @@ export class Map extends ComponentBase {
 		this.root.transition()
 			.duration(ZOOM_DURATION)
 			.call(this.zoom.transform, d3.zoomIdentity)
-	}
-	
-	initLayer(type: LayerType) {
-		let layer = new MapLayer(this.layersRoot, this, type)
-		layer.init()
-		
-		return layer
 	}
 }

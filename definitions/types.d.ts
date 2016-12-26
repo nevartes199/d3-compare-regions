@@ -1,6 +1,6 @@
 declare type LayerType = 'world' | 'regions' | 'countries' | 'states'
 
-declare interface Object {
+declare interface TopoObject {
 	features: Feature[]
 }
 

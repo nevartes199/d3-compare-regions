@@ -7,11 +7,11 @@ export class Data {
 	constructor() {
 	}
 	
-	getShapes(type: LayerType, filter?: (properties: Object) => boolean) {
+	getShapes(type: LayerType, filter?: (properties: TopoObject) => boolean) {
 		return this.getFeatures(type, filter)
 	}
 	
-	getBoundaries(type: LayerType, filter?: (properties: Object) => boolean) {
+	getBoundaries(type: LayerType, filter?: (properties: TopoObject) => boolean) {
 		return this.getFeatures(type, filter)
 	}
 	
@@ -19,7 +19,7 @@ export class Data {
 		return MAP_DATA.bbox // transform as MapTransform
 	}
 	
-	getFeatures(type: LayerType, filter?: (properties: Object) => boolean) {
+	getFeatures(type: LayerType, filter?: (properties: TopoObject) => boolean) {
 		let target
 		switch (type) {
 			case 'world':

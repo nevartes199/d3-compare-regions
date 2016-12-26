@@ -14,10 +14,10 @@ command -v mapshaper >/dev/null 2>&1 || {
     npm i -g mapshaper;
 }
 
-mapshaper \
-    -i ./ne_10m_admin_1_states_provinces/ne_10m_admin_1_states_provinces.shp snap \
-    -simplify weighted 2.2% \
-    -o ./states-simplified.json format=geojson force
+# mapshaper \
+#    -i ./ne_10m_admin_1_states_provinces/ne_10m_admin_1_states_provinces.shp snap \
+#    -simplify weighted 2.2% \
+#    -o ./states-simplified.json format=geojson force
 
 mapshaper \
     -i \
@@ -63,4 +63,4 @@ mapshaper \
     \
     -o ./map.json format=topojson target=world,regions,countries,states bbox force
 
-rm -f ./states-simplified.json
+#rm -f ./states-simplified.json

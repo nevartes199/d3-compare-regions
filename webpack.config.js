@@ -8,7 +8,7 @@ const TsConfigPathsPlugin = require('awesome-typescript-loader').TsConfigPathsPl
 const ENV = process.env.npm_lifecycle_event
 const isProd = ENV === 'build'
 
-const HREF = isProd ? '/d3-region-comparison/' : '/'
+const HREF = isProd ? '/d3-compare-regions/' : '/'
 
 const PROD_PLUGINS = isProd ? [
 		new webpack.optimize.UglifyJsPlugin({

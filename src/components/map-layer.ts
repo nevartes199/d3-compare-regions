@@ -3,7 +3,6 @@ import 'styles/layers.scss'
 import { ComponentBase, D3Selection, Map } from 'components'
 
 export class MapLayer extends ComponentBase {
-	animateBoundaries = false
 	features: any
 	
 	constructor(root: D3Selection, private map: Map, private type: LayerType) {
@@ -12,6 +11,8 @@ export class MapLayer extends ComponentBase {
 			type: 'g',
 			classes: ['layer', type]
 		}
+		
+		this.init()
 	}
 	
 	onInit() {
