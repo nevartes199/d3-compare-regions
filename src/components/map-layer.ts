@@ -20,21 +20,29 @@ export class MapLayer extends ComponentBase {
 		
 		let selectionCallback = this.map.select
 		
-		let itemGroups = this.root
+		let layerChilds = this.root
 			.selectAll('g')
 			.data(this.features)
 			.enter()
 			.append('g')
 			.attr('data-name', (d: Feature) => d.properties.name)
 		
-		let itemShapes = itemGroups
+		let land = layerChilds
 			.append('path')
+			.classed('land', true)
 			.on('click', function (data) {
 				selectionCallback(data as Feature, this as SVGPathElement)
 			})
 		
+		let boundaryData = this.app.data.getBoundaries(this.type)
+		let boundaries = this.root
+			.append('path')
+			.datum(boundaryData)
+			.classed('boundaries', true)
+		
 		this.addResizer(() => {
-			itemShapes.attr('d', this.map.path)
+			land.attr('d', this.map.path)
+			boundaries.attr('d', this.map.path)
 		})
 	}
 }

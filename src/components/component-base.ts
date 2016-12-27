@@ -57,8 +57,8 @@ export abstract class ComponentBase {
 		}
 		
 		this.rect = rect
-		this.resizers.forEach(r => r(rect))
 		this.onResize(rect)
+		this.resizers.forEach(r => r(rect))
 	}
 	
 	addResizer(resizer: Resizer, execute = false) {

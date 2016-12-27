@@ -3,13 +3,17 @@ import * as d3 from 'd3'
 import { ComponentBase, MapLayer, D3Selection } from 'components'
 
 const EQR_WIDTH = 640
-const LNG_OFFSET = -11
+const ASPECT_RATIO = 2.57617729 // Approximated map aspect ratio after removing Antartica
+const ROTATION: [number, number] = [-11, 0]
 const PRECISION = .05
-const LAYER_ORDER: LayerType[] = ['world', 'regions', 'countries', 'states']
+const LAYER_ORDER: LayerType[] = ['regions', 'countries', 'states']
 const SIDEBAR_WIDTH = 300
 const ZOOM_DURATION = 750
 
-export type MapSelection = d3.Selection<SVGPathElement, Feature, any, any>
+export interface Selection {
+	data: Feature,
+	target: D3Selection
+}
 
 export class Map extends ComponentBase {
 	wrapper = { type: 'svg', id: 'map' }
@@ -18,81 +22,114 @@ export class Map extends ComponentBase {
 	path: d3.GeoPath<any, d3.GeoPermissibleObjects>
 	zoom: d3.ZoomBehavior<any, any>
 	
-	zoomLevel = 0
-	
 	layers: MapLayer[] = []
 	layersRoot: D3Selection
+	layerIndex: number = 0
+	
+	selection: Selection
 	
 	onInit() {
-		this.initGeo()
-		this.initLayers()
-		this.initZoom()
-	}
-	
-	onResize(rect) {
-		this.layers.forEach(l => l.resize(rect))
-	}
-	
-	initGeo() {
 		this.projection = d3.geoEquirectangular()
-			.rotate([LNG_OFFSET, 0])
+			.rotate(ROTATION)
 			.precision(PRECISION)
 		
 		this.path = d3.geoPath()
 			.projection(this.projection)
 		
-		this.addResizer((rect) => {
-			this.projection
-				.scale((rect.width / EQR_WIDTH) * 100)
-				.translate([rect.width / 2, rect.height / 2])
-		})
+		let layersRoot = this.layersRoot = this.root
+			.append('g')
+			.classed('layers', true)
+		
+		this.initBaseLayers()
+		
+		this.zoom = d3.zoom()
+			.scaleExtent([1, 8])
+			.on('zoom', function () {
+				layersRoot.attr('transform', d3.event.transform)
+			})
+		
+		this.initLayer(this.layerIndex)
 	}
 	
-	initLayers() {
-		let ocean = this.root
+	onResize(rect) {
+		let blankSpace = rect.height - (rect.width / ASPECT_RATIO)
+		this.projection
+			.scale((rect.width / EQR_WIDTH) * 100)
+			.translate([
+				rect.width / 2,
+				(rect.height + (blankSpace / 2)) / 2
+			])
+		
+		this.layers.forEach(l => l.resize(rect))
+	}
+	
+	select = (feature: Feature, path: SVGPathElement) => {
+		if (this.selection) {
+			if (this.selection.data === feature) {
+				this.deselect()
+				return
+			} else {
+				this.selection.target.classed('selected', false)
+			}
+		}
+
+		this.cameraFocus(feature)
+		
+		let target = d3.select(path)
+		target.classed('selected', true)
+		
+		this.selection = {
+			data: feature,
+			target: target
+		}
+	}
+	
+	deselect = () => {
+		this.cameraReset()
+		
+		if (this.selection) {
+			this.selection.target.classed('selected', false)
+		}
+		
+		this.selection = null
+	}
+	
+	initBaseLayers() {
+		let baseLayers = this.layersRoot
+			.append('g')
+			.classed('base-layers', true)
+		
+		let ocean = baseLayers
 			.append('rect')
 			.classed('ocean', true)
 			.on('click', this.deselect)
 		
-		this.layersRoot = this.root
-			.append('g')
-			.classed('layers', true)
-		
-		this.layers = [
-			new MapLayer(this.layersRoot, this, LAYER_ORDER[0])
-		]
+		let world = this.data.getFeatures('world')[0]
+		let land = baseLayers
+			.append('path')
+			.datum(world)
+			.classed('world', true)
 		
 		this.addResizer((rect) => {
 			ocean
 				.attr('width', rect.width)
 				.attr('height', rect.height)
+			
+			land
+				.attr('d', this.path)
 		})
 	}
 	
-	initZoom() {
-		let zoomCallback = this.onZoom
-		this.zoom = d3.zoom()
-			.scaleExtent([1, 8])
-			.on('zoom', function () {
-				zoomCallback(d3.event.transform)
-			})
+	initLayer(index: number) {
+		if (!this.layers[index]) {
+			let layerType = LAYER_ORDER[index]
+			this.layers[index] = new MapLayer(this.layersRoot, this, layerType)
+		}
+		
+		return this.layers[index]
 	}
 	
-	select = (feature: Feature, path: SVGPathElement) => {
-		console.info(feature, path)
-		this.zoomIn(feature)
-	}
-	
-	deselect = () => {
-		console.log('zoom out')
-		// this.zoomReset() // Replace with zoom out
-	}
-	
-	onZoom = (transform: d3.ZoomTransform) => {
-		this.layersRoot.attr('transform', transform as any)
-	}
-	
-	zoomIn = (feature: Feature) => {
+	cameraFocus = (feature: Feature) => {
 		let width = this.rect.width - SIDEBAR_WIDTH,
 			height = this.rect.height,
 			bounds = this.path.bounds(feature as any),
@@ -108,8 +145,8 @@ export class Map extends ComponentBase {
 			.duration(ZOOM_DURATION)
 			.call(this.zoom.transform, transformation)
 	}
-
-	zoomReset() {
+	
+	cameraReset() {
 		this.root.transition()
 			.duration(ZOOM_DURATION)
 			.call(this.zoom.transform, d3.zoomIdentity)

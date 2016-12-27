@@ -1,30 +1,48 @@
 @import "./variables";
 
-.layer {
-  color: $layer-disabled;
+// TODO: rename to map.scss
+$land-color: white;
+$land-hover: .9;
+$land-selected: .8;
 
-  &.current {
-    fill: $layer-enabled;
+svg#map {
+  width: 100%;
+  height: 100%;
 
-    & > * {
-      pointer-events: fill !important;
-      cursor: pointer;
+  path {
+    fill: none;
+  }
+
+  .ocean {
+    fill: none;
+    pointer-events: visible;
+  }
+
+  .world {
+    fill: #666;
+  }
+
+  .layer {
+    path.land {
+      pointer-events: visiblefill;
+      transition: color 300ms ease-out;
+      color: transparent;
+      fill: currentColor;
 
       &:hover {
-        fill: $item-hover;
+        cursor: pointer !important;
+        color: transparentize($land-color, $land-hover);
       }
 
       &.selected {
-        fill: $item-selected;
+        color: transparentize($land-color, $land-selected);
       }
     }
+
+    path.boundaries {
+      stroke: #CCC;
+      fill: none !important;
+      stroke-width: .5px;
+    }
   }
-}
-
-path {
-  fill: #333 !important;
-}
-
-path:hover {
-  fill: #111 !important;
 }

@@ -1,4 +1,3 @@
-declare const WORLD: any
 const MAP_DATA = require('data/map.json')
 
 import * as topo from 'topojson-client'
@@ -12,7 +11,9 @@ export class Data {
 	}
 	
 	getBoundaries(type: LayerType, filter?: (properties: TopoObject) => boolean) {
-		return this.getFeatures(type, filter)
+		let objects = MAP_DATA.objects[type] as Feature[]
+		// TODO: parementer for mesh filter: both, inner and outer
+		return topo.mesh(MAP_DATA, objects, (a, b) => a !== b)
 	}
 	
 	getMapTransforms() {
@@ -43,6 +44,6 @@ export class Data {
 			features = features.filter(f => filter(f))
 		}
 		
-		return features as Feature[]
+		return features
 	}
 }
