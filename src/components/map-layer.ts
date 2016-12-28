@@ -3,12 +3,12 @@ import { ComponentBase, Map, MapSelection } from 'components'
 const ANIMATION_DURATION = 300
 
 export class MapLayer extends ComponentBase {
-	static parent: Map
+	static parentComponent: Map
 	map: Map
 	
-	constructor(private type: LayerType, public context?: MapSelection) {
-		super(MapLayer.parent.layersRoot)
-		this.map = MapLayer.parent
+	constructor(private type: LayerType, public parent?: MapSelection) {
+		super(MapLayer.parentComponent.layersRoot)
+		this.map = MapLayer.parentComponent
 		
 		this.wrapper = {
 			type: 'g',
@@ -19,7 +19,7 @@ export class MapLayer extends ComponentBase {
 	}
 	
 	onInit() {
-		let contextData = this.context ? this.context.data.properties : undefined
+		let contextData = this.parent ? this.parent.data.properties : undefined
 		let data = this.data.getShapes(this.type, contextData)
 		let boundaryData = this.app.data.getBoundaries(this.type, contextData)
 		
@@ -54,7 +54,7 @@ export class MapLayer extends ComponentBase {
 		this.addResizer(() => {
 			land.attr('d', this.map.path)
 			boundaries.attr('d', this.map.path)
-		}, this.context !== undefined)
+		}, this.parent !== undefined)
 	}
 	
 	destroy() {

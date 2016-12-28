@@ -15,7 +15,7 @@ const MAX_SCALE = 48
 
 export interface MapSelection {
 	data: Feature,
-	target: D3Selection
+	element: D3Selection
 }
 
 export class Map extends ComponentBase {
@@ -42,7 +42,7 @@ export class Map extends ComponentBase {
 		this.initBaseLayers()
 		
 		let layersRoot = this.layersRoot
-		MapLayer.parent = this
+		MapLayer.parentComponent = this
 		
 		this.zoom = d3.zoom()
 			.scaleExtent([1, MAX_SCALE])
@@ -67,53 +67,58 @@ export class Map extends ComponentBase {
 		this.layers.forEach(l => l.resize(rect))
 	}
 	
-	select = (feature: Feature, target: SVGPathElement) => {
+	select = (target: Feature, targetEl: SVGPathElement) => {
 		if (this.selection) {
-			if (this.selection.data === feature) {
+			if (this.selection.data === target) {
 				// If the seletected feature has no sublayers select the parent
 				let currentLayer = this.layers[this.layerIndex]
-				this.select(currentLayer.context.data, currentLayer.context.target.node() as SVGPathElement)
+				this.select(currentLayer.parent.data, currentLayer.parent.element.node() as SVGPathElement)
 				return
 			} else {
-				this.selection.target.classed('selected', false)
+				this.selection.element.classed('selected', false)
 			}
 		}
 		
-		let newIndex = LAYER_ORDER.indexOf(feature.properties.type)
-		if (newIndex < this.layerIndex) {
-			// When selection goes to a layer above the current one
-			// remove all extra layers
-			let layersToRemove = this.layers.splice(newIndex + 1, this.layerIndex - newIndex)
-			layersToRemove.forEach(layer => {
-				if (layer.context.data === feature) {
-					this.layers.push(layer)
-				} else {
-					layer.destroy()
-				}
-			})
-			
-			this.layerIndex = this.layers.length - 2
-		}
+		this.layerIndex = LAYER_ORDER.indexOf(target.properties.type)
 		
-		let targetSelection = d3.select(target)
+		let targetSelection = d3.select(targetEl)
 		targetSelection.classed('selected', true)
 		
-		this.cameraFocus(feature)
+		this.cameraFocus(target)
 		this.selection = {
-			data: feature,
-			target: targetSelection
+			data: target,
+			element: targetSelection
+		}
+		
+		this.removeExtraLayers()
+		
+		if (this.selection.data.properties.has_sublayer) {
+			this.initLayer(this.layerIndex + 1, this.selection)
 		}
 	}
 	
 	deselect = () => {
-		if (this.layerIndex) {
-			// Select parent of the current layer
-			let layer = this.layers[this.layerIndex]
-			this.select(layer.context.data, layer.context.target.node() as SVGPathElement)
-		} else {
-			this.cameraReset()
-			this.selection = null
+		// Select the parent layer
+		let layer = this.layers[this.layerIndex]
+		let parent = layer.parent
+		
+		if (!parent) {
+			this.clearSelection()
+			return
 		}
+		
+		// Select parent of the current layer
+		this.select(parent.data, parent.element.node() as SVGPathElement)
+	}
+	
+	clearSelection = () => {
+		if (this.selection) {
+			this.selection.element.classed('selected', false)
+		}
+		
+		this.cameraReset()
+		this.selection = null
+		this.removeExtraLayers()
 	}
 	
 	initBaseLayers() {
@@ -151,19 +156,26 @@ export class Map extends ComponentBase {
 		return this.layers[index]
 	}
 	
+	removeExtraLayers() {
+		this.layers = this.layers.filter((layer, idx) => {
+			let selection = this.selection ? this.selection.data : false
+			let isDirectChild = layer.parent && layer.parent.data === selection
+			let isBelowCurrent = idx > this.layerIndex
+			if (isBelowCurrent && !isDirectChild) {
+				layer.destroy()
+				return false
+			} else {
+				return true
+			}
+		})
+	}
+	
 	onCameraAnimationStart = () => {
 		this.root.classed('animating', true)
 	}
 	
 	onCameraAnimationEnd = () => {
 		this.root.classed('animating', false)
-		
-		if (this.selection && this.selection.data.properties.has_sublayer) {
-			setTimeout(() => {
-				this.layerIndex++
-				this.initLayer(this.layerIndex, this.selection)
-			}, 100)
-		}
 	}
 	
 	cameraFocus = (feature: Feature) => {
