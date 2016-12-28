@@ -1,4 +1,4 @@
-declare type LayerType = 'world' | 'regions' | 'countries' | 'states'
+declare type LayerType = 'world' | 'region' | 'country' | 'state'
 
 declare interface TopoObject {
 	features: Feature[]
@@ -17,7 +17,7 @@ declare interface Feature {
 
 declare interface FeatureData {
 	name: string
-	type: string
+	type: LayerType
 	has_sublayer: boolean
 }
 

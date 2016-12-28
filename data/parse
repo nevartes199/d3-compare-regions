@@ -35,32 +35,32 @@ mapshaper \
     -filter target=raw 'type_en!=="Overseas department"' \
     -filter-fields target=raw country,country_code,state,state_code \
     \
-    -filter target=raw "$HAS_STATES_LAYER" no-replace name=states \
-    -filter-fields target=states country,state,state_code \
-    -each target=states "type='state', name=state, has_sublayer=false" \
+    -filter target=raw "$HAS_STATES_LAYER" no-replace name=state \
+    -filter-fields target=state country,state,state_code \
+    -each target=state "type='state', name=state, has_sublayer=false" \
     \
     -join 50m target=raw keys=country_code,adm0_a3 fields=continent,region_un,subregion \
     -rename-fields target=raw region=region_un,sub_region=subregion \
     -filter target=raw 'region !== null' \
     -filter target=raw 'region.indexOf("Seven") === -1' \
-    -dissolve country_code target=raw no-replace copy-fields=country,region,sub_region name=countries \
+    -dissolve country_code target=raw no-replace copy-fields=country,region,sub_region name=country \
     \
-    -filter-slivers target=countries min-area=1 remove-empty \
-    -filter-islands target=countries min-area="$MIN_AREA" remove-empty \
+    -filter-slivers target=country min-area=1 remove-empty \
+    -filter-islands target=country min-area="$MIN_AREA" remove-empty \
     \
     \
-    -each target=countries 'region="North America"' where='sub_region === "Northern America"'  \
-    -each target=countries 'region="Central America"' where='sub_region === "Caribbean" || sub_region === "Central America"' \
-    -each target=countries 'region="South America"' where='sub_region === "South America"' \
-    -dissolve region target=countries no-replace name=regions \
-    -each target=regions "type='region', name=region, has_sublayer=true" \
+    -each target=country 'region="North America"' where='sub_region === "Northern America"'  \
+    -each target=country 'region="Central America"' where='sub_region === "Caribbean" || sub_region === "Central America"' \
+    -each target=country 'region="South America"' where='sub_region === "South America"' \
+    -dissolve region target=country no-replace name=region \
+    -each target=region "type='region', name=region, has_sublayer=true" \
     \
-    -filter-fields target=countries country,country_code,region \
-    -each target=countries "type='country', name=country, has_sublayer=$HAS_STATES_LAYER" \
+    -filter-fields target=country country,country_code,region \
+    -each target=country "type='country', name=country, has_sublayer=$HAS_STATES_LAYER" \
     \
-    -dissolve target=regions no-replace name=world \
+    -dissolve target=region no-replace name=world \
     -each target=world "type='world', name='World', has_sublayer=true" \
     \
-    -o ./map.json format=topojson target=world,regions,countries,states bbox force
+    -o ./map.json format=topojson target=world,region,country,state bbox force
 
 #rm -f ./states-simplified.json

@@ -1,10 +1,12 @@
-import { ComponentBase, D3Selection, Map } from 'components'
+import { ComponentBase, Map, MapSelection } from 'components'
+
+const ANIMATION_DURATION = 300
 
 export class MapLayer extends ComponentBase {
 	static parent: Map
 	map: Map
 	
-	constructor(private type: LayerType, private context?: FeatureData) {
+	constructor(private type: LayerType, public context?: MapSelection) {
 		super(MapLayer.parent.layersRoot)
 		this.map = MapLayer.parent
 		
@@ -17,11 +19,9 @@ export class MapLayer extends ComponentBase {
 	}
 	
 	onInit() {
-		let data = this.data.getShapes(this.type, this.context)
-		let boundaryData = this.app.data.getBoundaries(this.type, this.context)
-		
-		let selectionCallback = this.map.select
-		let introAnimationStarted = false
+		let contextData = this.context ? this.context.data.properties : undefined
+		let data = this.data.getShapes(this.type, contextData)
+		let boundaryData = this.app.data.getBoundaries(this.type, contextData)
 		
 		let childs = this.root
 			.selectAll('g')
@@ -31,42 +31,33 @@ export class MapLayer extends ComponentBase {
 			.classed('land', true)
 			.attr('data-name', (d: Feature) => d.properties.name)
 		
+		let select = this.map.select
 		let land = childs
 			.append('path')
-			.on('click', function (selectionData) {
-				selectionCallback(selectionData as Feature, this as SVGPathElement)
+			.on('click', function(feature) {
+				select(feature, this as SVGPathElement)
 			})
 		
 		let boundaries = this.root
 			.append('g')
 			.classed('boundaries', true)
 			.append('path')
+			.style('opacity', 0)
+			.attr('vector-effect', 'non-scaling-stroke')
 			.datum(boundaryData)
+		
+		boundaries
+			.transition()
+			.duration(ANIMATION_DURATION / 2)
+			.style('opacity', 1)
 		
 		this.addResizer(() => {
 			land.attr('d', this.map.path)
 			boundaries.attr('d', this.map.path)
-			
-			if (!introAnimationStarted) {
-				introAnimationStarted = true
-				
-				let length = (boundaries.node() as SVGPathElement).getTotalLength()
-				boundaries.style('stroke-dasharray', `0 ${length} 0`)
-				boundaries.style('opacity', 0)
-				
-				setTimeout(() => {
-					boundaries.classed('animated', true)
-				}, 10)
-				
-				setTimeout(() => {
-					boundaries.style('stroke-dasharray', `${length / 2} 0 ${length / 2}`)
-					boundaries.style('opacity', 1)
-					setTimeout(() => {
-						boundaries.attr('style', null)
-						boundaries.classed('animated', false)
-					}, 1200)
-				}, 300)
-			}
 		}, this.context !== undefined)
+	}
+	
+	destroy() {
+		this.root.html('')
 	}
 }

@@ -8,11 +8,12 @@ const EQR_WIDTH = 640
 const ASPECT_RATIO = 2.57617729 // Approximated map aspect ratio after removing Antartica
 const ROTATION: [number, number] = [-11, 0]
 const PRECISION = .05
-const LAYER_ORDER: LayerType[] = ['regions', 'countries', 'states']
+const LAYER_ORDER: LayerType[] = ['region', 'country', 'state']
 const SIDEBAR_WIDTH = 300
-const ZOOM_DURATION = 750
+const ZOOM_DURATION = 600
+const MAX_SCALE = 48
 
-export interface Selection {
+export interface MapSelection {
 	data: Feature,
 	target: D3Selection
 }
@@ -28,7 +29,7 @@ export class Map extends ComponentBase {
 	layersRoot: D3Selection
 	layerIndex: number = 0
 	
-	selection: Selection
+	selection: MapSelection
 	
 	onInit() {
 		this.projection = d3.geoEquirectangular()
@@ -44,7 +45,7 @@ export class Map extends ComponentBase {
 		MapLayer.parent = this
 		
 		this.zoom = d3.zoom()
-			.scaleExtent([1, 8])
+			.scaleExtent([1, MAX_SCALE])
 			.on('zoom', function () {
 				layersRoot.attr('transform', d3.event.transform)
 			})
@@ -66,40 +67,53 @@ export class Map extends ComponentBase {
 		this.layers.forEach(l => l.resize(rect))
 	}
 	
-	select = (feature: Feature, path: SVGPathElement) => {
+	select = (feature: Feature, target: SVGPathElement) => {
 		if (this.selection) {
 			if (this.selection.data === feature) {
-				this.deselect()
+				// If the seletected feature has no sublayers select the parent
+				let currentLayer = this.layers[this.layerIndex]
+				this.select(currentLayer.context.data, currentLayer.context.target.node() as SVGPathElement)
 				return
 			} else {
 				this.selection.target.classed('selected', false)
 			}
 		}
-
-		this.cameraFocus(feature)
 		
-		let target = d3.select(path)
-		target.classed('selected', true)
-		
-		this.selection = {
-			data: feature,
-			target: target
+		let newIndex = LAYER_ORDER.indexOf(feature.properties.type)
+		if (newIndex < this.layerIndex) {
+			// When selection goes to a layer above the current one
+			// remove all extra layers
+			let layersToRemove = this.layers.splice(newIndex + 1, this.layerIndex - newIndex)
+			layersToRemove.forEach(layer => {
+				if (layer.context.data === feature) {
+					this.layers.push(layer)
+				} else {
+					layer.destroy()
+				}
+			})
+			
+			this.layerIndex = this.layers.length - 2
 		}
 		
-		if (feature.properties.has_sublayer) {
-			this.layerIndex++
-			this.initLayer(this.layerIndex, feature.properties)
+		let targetSelection = d3.select(target)
+		targetSelection.classed('selected', true)
+		
+		this.cameraFocus(feature)
+		this.selection = {
+			data: feature,
+			target: targetSelection
 		}
 	}
 	
 	deselect = () => {
-		this.cameraReset()
-		
-		if (this.selection) {
-			this.selection.target.classed('selected', false)
+		if (this.layerIndex) {
+			// Select parent of the current layer
+			let layer = this.layers[this.layerIndex]
+			this.select(layer.context.data, layer.context.target.node() as SVGPathElement)
+		} else {
+			this.cameraReset()
+			this.selection = null
 		}
-		
-		this.selection = null
 	}
 	
 	initBaseLayers() {
@@ -128,13 +142,28 @@ export class Map extends ComponentBase {
 		})
 	}
 	
-	initLayer(index: number, context?: FeatureData) {
+	initLayer(index: number, context?: MapSelection) {
 		if (!this.layers[index]) {
 			let layerType = LAYER_ORDER[index]
 			this.layers[index] = new MapLayer(layerType, context)
 		}
 		
 		return this.layers[index]
+	}
+	
+	onCameraAnimationStart = () => {
+		this.root.classed('animating', true)
+	}
+	
+	onCameraAnimationEnd = () => {
+		this.root.classed('animating', false)
+		
+		if (this.selection && this.selection.data.properties.has_sublayer) {
+			setTimeout(() => {
+				this.layerIndex++
+				this.initLayer(this.layerIndex, this.selection)
+			}, 100)
+		}
 	}
 	
 	cameraFocus = (feature: Feature) => {
@@ -145,18 +174,22 @@ export class Map extends ComponentBase {
 			dy = bounds[1][1] - bounds[0][1],
 			x = (bounds[0][0] + bounds[1][0]) / 2,
 			y = (bounds[0][1] + bounds[1][1]) / 2,
-			scale = Math.max(1, Math.min(8, 0.9 / Math.max(dx / width, dy / height))),
+			scale = Math.max(1, Math.min(MAX_SCALE, 0.9 / Math.max(dx / width, dy / height))),
 			translate = [width / 2 - scale * x, height / 2 - scale * y]
 		
 		let transformation = d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
+		this.onCameraAnimationStart()
 		this.root.transition()
 			.duration(ZOOM_DURATION)
 			.call(this.zoom.transform, transformation)
+			.on('end', this.onCameraAnimationEnd)
 	}
 	
 	cameraReset() {
+		this.onCameraAnimationStart()
 		this.root.transition()
 			.duration(ZOOM_DURATION)
 			.call(this.zoom.transform, d3.zoomIdentity)
+			.on('end', this.onCameraAnimationEnd)
 	}
 }
