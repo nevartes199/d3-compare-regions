@@ -6,44 +6,39 @@ export class Data {
 	constructor() {
 	}
 	
-	getShapes(type: LayerType, filter?: (properties: TopoObject) => boolean) {
-		return this.getFeatures(type, filter)
+	getShapes(type: LayerType, context?: FeatureData) {
+		let data = this.getData(type)
+		let featureCollection = topo.feature(MAP_DATA, data) as FeatureCollection
+		
+		if (context) {
+			featureCollection.features = featureCollection.features.filter((f: Feature) => f.properties[context.type] === context.name)
+		}
+		
+		return featureCollection
 	}
 	
-	getBoundaries(type: LayerType, filter?: (properties: TopoObject) => boolean) {
-		let objects = MAP_DATA.objects[type] as Feature[]
+	getBoundaries(type: LayerType, context?: FeatureData) {
 		// TODO: parementer for mesh filter: both, inner and outer
-		return topo.mesh(MAP_DATA, objects, (a, b) => a !== b)
+		let data = this.getData(type)
+		
+		if (context) {
+			data = {
+				geometries: data.geometries.filter(g => {
+					let p = g.properties as FeatureData
+					return p[context.type] === context.name
+				}),
+				type: data.type
+			}
+		}
+		
+		return topo.mesh(MAP_DATA, data, (a, b) => a !== b)
 	}
 	
-	getMapTransforms() {
-		return MAP_DATA.bbox // transform as MapTransform
-	}
-	
-	getFeatures(type: LayerType, filter?: (properties: TopoObject) => boolean) {
-		let target
-		switch (type) {
-			case 'world':
-			case 'regions':
-			case 'countries':
-			case 'states':
-				target = MAP_DATA.objects[type]
-				break
-			default:
-				throw `Unknown layer type ${type}`
+	private getData(type: LayerType) {
+		if (!MAP_DATA.objects[type]) {
+			throw `Unknown layer type ${type}`
 		}
 		
-		let object = topo.feature(MAP_DATA, target)
-		let features = object.features
-		
-		if (!features) {
-			console.error('No features found', object)
-		}
-		
-		if (filter) {
-			features = features.filter(f => filter(f))
-		}
-		
-		return features
+		return MAP_DATA.objects[type]
 	}
 }

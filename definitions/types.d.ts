@@ -4,13 +4,21 @@ declare interface TopoObject {
 	features: Feature[]
 }
 
+declare interface FeatureCollection {
+	features: Feature[]
+	type: string
+}
+
 declare interface Feature {
-	arcs: any[]
-	properties: {
-		name: string
-		type: string
-		has_sublayer: boolean
-	}
+	geometry?: any
+	properties: FeatureData
+	type?: string
+}
+
+declare interface FeatureData {
+	name: string
+	type: string
+	has_sublayer: boolean
 }
 
 declare interface RegionData {

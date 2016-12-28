@@ -1,8 +1,13 @@
 import { ComponentBase, D3Selection, Map } from 'components'
 
 export class MapLayer extends ComponentBase {
-	constructor(root: D3Selection, private map: Map, private type: LayerType) {
-		super(root)
+	static parent: Map
+	map: Map
+	
+	constructor(private type: LayerType, private context?: FeatureData) {
+		super(MapLayer.parent.layersRoot)
+		this.map = MapLayer.parent
+		
 		this.wrapper = {
 			type: 'g',
 			classes: ['layer', type]
@@ -12,15 +17,15 @@ export class MapLayer extends ComponentBase {
 	}
 	
 	onInit() {
-		let introAnimationStarted = false
+		let data = this.data.getShapes(this.type, this.context)
+		let boundaryData = this.app.data.getBoundaries(this.type, this.context)
 		
-		let data = this.data.getFeatures(this.type)
-		let boundaryData = this.app.data.getBoundaries(this.type)
 		let selectionCallback = this.map.select
+		let introAnimationStarted = false
 		
 		let childs = this.root
 			.selectAll('g')
-			.data(data)
+			.data(data.features)
 			.enter()
 			.append('g')
 			.classed('land', true)
@@ -47,16 +52,21 @@ export class MapLayer extends ComponentBase {
 				
 				let length = (boundaries.node() as SVGPathElement).getTotalLength()
 				boundaries.style('stroke-dasharray', `0 ${length} 0`)
-				boundaries.classed('animated', true)
+				boundaries.style('opacity', 0)
+				
+				setTimeout(() => {
+					boundaries.classed('animated', true)
+				}, 10)
 				
 				setTimeout(() => {
 					boundaries.style('stroke-dasharray', `${length / 2} 0 ${length / 2}`)
+					boundaries.style('opacity', 1)
 					setTimeout(() => {
-						boundaries.style('stroke-dasharray', `0`)
+						boundaries.attr('style', null)
 						boundaries.classed('animated', false)
 					}, 1200)
 				}, 300)
 			}
-		})
+		}, this.context !== undefined)
 	}
 }

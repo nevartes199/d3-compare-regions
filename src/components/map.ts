@@ -21,7 +21,7 @@ export class Map extends ComponentBase {
 	wrapper = { type: 'svg', id: 'map' }
 	
 	projection: d3.GeoProjection
-	path: d3.GeoPath<any, d3.GeoPermissibleObjects>
+	path: d3.GeoPath<any, any>
 	zoom: d3.ZoomBehavior<any, any>
 	
 	layers: MapLayer[] = []
@@ -41,6 +41,7 @@ export class Map extends ComponentBase {
 		this.initBaseLayers()
 		
 		let layersRoot = this.layersRoot
+		MapLayer.parent = this
 		
 		this.zoom = d3.zoom()
 			.scaleExtent([1, 8])
@@ -52,7 +53,9 @@ export class Map extends ComponentBase {
 	}
 	
 	onResize(rect) {
+		// Blank space left in projection due to removal of Antartica
 		let blankSpace = rect.height - (rect.width / ASPECT_RATIO)
+		
 		this.projection
 			.scale((rect.width / EQR_WIDTH) * 100)
 			.translate([
@@ -82,6 +85,11 @@ export class Map extends ComponentBase {
 			data: feature,
 			target: target
 		}
+		
+		if (feature.properties.has_sublayer) {
+			this.layerIndex++
+			this.initLayer(this.layerIndex, feature.properties)
+		}
 	}
 	
 	deselect = () => {
@@ -103,13 +111,12 @@ export class Map extends ComponentBase {
 		this.layersRoot = this.root
 			.append('g')
 			.classed('layers', true)
-		
-		let worldData = this.data.getFeatures('world')[0]
+		 
 		let world = this.layersRoot
 			.append('g')
 			.classed('world', true)
 			.append('path')
-			.datum(worldData)
+			.data(this.data.getShapes('world').features)
 		
 		this.addResizer((rect) => {
 			ocean
@@ -121,10 +128,10 @@ export class Map extends ComponentBase {
 		})
 	}
 	
-	initLayer(index: number) {
+	initLayer(index: number, context?: FeatureData) {
 		if (!this.layers[index]) {
 			let layerType = LAYER_ORDER[index]
-			this.layers[index] = new MapLayer(this.layersRoot, this, layerType)
+			this.layers[index] = new MapLayer(layerType, context)
 		}
 		
 		return this.layers[index]

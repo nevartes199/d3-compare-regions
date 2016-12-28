@@ -3,6 +3,7 @@
 $land-color: white;
 $land-hover: .9;
 $land-selected: .8;
+$boundary-intro-duration: 1200ms;
 
 svg#map {
   width: 100%;
@@ -39,11 +40,14 @@ svg#map {
     }
 
     .boundaries path {
-      stroke: #CCC;
+      color: #CCC;
       fill: none !important;
+      stroke: currentColor;
       stroke-width: .5px;
       &.animated {
-        transition: stroke-dasharray 1200ms cubic-bezier(0, 0, 0.04, 1.01);
+        transition:
+                stroke-dasharray $boundary-intro-duration cubic-bezier(0, 0, 0.04, 1.01),
+                opacity $boundary-intro-duration linear;
       }
     }
   }
