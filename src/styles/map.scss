@@ -1,6 +1,5 @@
 @import "./variables";
 
-// TODO: rename to map.scss
 $land-color: white;
 $land-hover: .9;
 $land-selected: .8;
@@ -18,12 +17,12 @@ svg#map {
     pointer-events: visible;
   }
 
-  .world {
+  .world path {
     fill: #666;
   }
 
   .layer {
-    path.land {
+    .land path {
       pointer-events: visiblefill;
       transition: color 300ms ease-out;
       color: transparent;
@@ -39,10 +38,13 @@ svg#map {
       }
     }
 
-    path.boundaries {
+    .boundaries path {
       stroke: #CCC;
       fill: none !important;
       stroke-width: .5px;
+      &.animated {
+        transition: stroke-dasharray 1200ms cubic-bezier(0, 0, 0.04, 1.01);
+      }
     }
   }
 }

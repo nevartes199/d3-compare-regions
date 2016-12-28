@@ -1,5 +1,7 @@
 import * as d3 from 'd3'
 
+import 'styles/map.scss'
+
 import { ComponentBase, MapLayer, D3Selection } from 'components'
 
 const EQR_WIDTH = 640
@@ -36,11 +38,9 @@ export class Map extends ComponentBase {
 		this.path = d3.geoPath()
 			.projection(this.projection)
 		
-		let layersRoot = this.layersRoot = this.root
-			.append('g')
-			.classed('layers', true)
-		
 		this.initBaseLayers()
+		
+		let layersRoot = this.layersRoot
 		
 		this.zoom = d3.zoom()
 			.scaleExtent([1, 8])
@@ -95,27 +95,28 @@ export class Map extends ComponentBase {
 	}
 	
 	initBaseLayers() {
-		let baseLayers = this.layersRoot
-			.append('g')
-			.classed('base-layers', true)
-		
-		let ocean = baseLayers
+		let ocean = this.root
 			.append('rect')
 			.classed('ocean', true)
 			.on('click', this.deselect)
 		
-		let world = this.data.getFeatures('world')[0]
-		let land = baseLayers
-			.append('path')
-			.datum(world)
+		this.layersRoot = this.root
+			.append('g')
+			.classed('layers', true)
+		
+		let worldData = this.data.getFeatures('world')[0]
+		let world = this.layersRoot
+			.append('g')
 			.classed('world', true)
+			.append('path')
+			.datum(worldData)
 		
 		this.addResizer((rect) => {
 			ocean
 				.attr('width', rect.width)
 				.attr('height', rect.height)
 			
-			land
+			world
 				.attr('d', this.path)
 		})
 	}

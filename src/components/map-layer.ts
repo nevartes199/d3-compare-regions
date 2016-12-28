@@ -1,10 +1,6 @@
-import 'styles/layers.scss'
-
 import { ComponentBase, D3Selection, Map } from 'components'
 
 export class MapLayer extends ComponentBase {
-	features: any
-	
 	constructor(root: D3Selection, private map: Map, private type: LayerType) {
 		super(root)
 		this.wrapper = {
@@ -16,33 +12,51 @@ export class MapLayer extends ComponentBase {
 	}
 	
 	onInit() {
-		this.features = this.data.getFeatures(this.type)
+		let introAnimationStarted = false
 		
+		let data = this.data.getFeatures(this.type)
+		let boundaryData = this.app.data.getBoundaries(this.type)
 		let selectionCallback = this.map.select
 		
-		let layerChilds = this.root
+		let childs = this.root
 			.selectAll('g')
-			.data(this.features)
+			.data(data)
 			.enter()
 			.append('g')
+			.classed('land', true)
 			.attr('data-name', (d: Feature) => d.properties.name)
 		
-		let land = layerChilds
+		let land = childs
 			.append('path')
-			.classed('land', true)
-			.on('click', function (data) {
-				selectionCallback(data as Feature, this as SVGPathElement)
+			.on('click', function (selectionData) {
+				selectionCallback(selectionData as Feature, this as SVGPathElement)
 			})
 		
-		let boundaryData = this.app.data.getBoundaries(this.type)
 		let boundaries = this.root
+			.append('g')
+			.classed('boundaries', true)
 			.append('path')
 			.datum(boundaryData)
-			.classed('boundaries', true)
 		
 		this.addResizer(() => {
 			land.attr('d', this.map.path)
 			boundaries.attr('d', this.map.path)
+			
+			if (!introAnimationStarted) {
+				introAnimationStarted = true
+				
+				let length = (boundaries.node() as SVGPathElement).getTotalLength()
+				boundaries.style('stroke-dasharray', `0 ${length} 0`)
+				boundaries.classed('animated', true)
+				
+				setTimeout(() => {
+					boundaries.style('stroke-dasharray', `${length / 2} 0 ${length / 2}`)
+					setTimeout(() => {
+						boundaries.style('stroke-dasharray', `0`)
+						boundaries.classed('animated', false)
+					}, 1200)
+				}, 300)
+			}
 		})
 	}
 }
