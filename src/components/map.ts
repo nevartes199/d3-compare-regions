@@ -2,14 +2,13 @@ import * as d3 from 'd3'
 
 import 'styles/map.scss'
 
-import { ComponentBase, MapLayer, D3Selection } from 'components'
+import { ComponentBase, MapLayer, D3Selection, MapOverlay } from 'components'
 
 const EQR_WIDTH = 640
 const ASPECT_RATIO = 2.57617729 // Approximated map aspect ratio after removing Antartica
 const ROTATION: [number, number] = [-11, 0]
 const PRECISION = .05
 const LAYER_ORDER: LayerType[] = ['region', 'country', 'state']
-const SIDEBAR_WIDTH = 300
 const ZOOM_DURATION = 600
 const MAX_SCALE = 48
 
@@ -67,13 +66,13 @@ export class Map extends ComponentBase {
 		this.layers.forEach(l => l.resize(rect))
 	}
 	
-	select = (target: Feature, targetEl: SVGPathElement) => {
+	select = (target: Feature, targetEl: SVGPathElement): Feature => {
 		if (this.selection) {
 			if (this.selection.data === target) {
 				// If the seletected feature has no sublayers select the parent
 				let currentLayer = this.layers[this.layerIndex]
 				this.select(currentLayer.parent.data, currentLayer.parent.element.node() as SVGPathElement)
-				return
+				return currentLayer.parent.data
 			} else {
 				this.selection.element.classed('selected', false)
 			}
@@ -97,18 +96,19 @@ export class Map extends ComponentBase {
 		}
 	}
 	
-	deselect = () => {
+	deselect = (): Feature => {
 		// Select the parent layer
 		let layer = this.layers[this.layerIndex]
 		let parent = layer.parent
 		
 		if (!parent) {
 			this.clearSelection()
-			return
+			return null
 		}
 		
 		// Select parent of the current layer
 		this.select(parent.data, parent.element.node() as SVGPathElement)
+		return parent.data
 	}
 	
 	clearSelection = () => {
@@ -125,7 +125,7 @@ export class Map extends ComponentBase {
 		let ocean = this.root
 			.append('rect')
 			.classed('ocean', true)
-			.on('click', this.deselect)
+			.on('click', this.app.deselect)
 		
 		this.layersRoot = this.root
 			.append('g')
@@ -171,6 +171,7 @@ export class Map extends ComponentBase {
 	}
 	
 	onCameraAnimationStart = () => {
+		// this.app.info.clearLegend()
 		this.root.classed('animating', true)
 	}
 	
@@ -179,7 +180,7 @@ export class Map extends ComponentBase {
 	}
 	
 	cameraFocus = (feature: Feature) => {
-		let width = this.rect.width - SIDEBAR_WIDTH,
+		let width = this.rect.width - MapOverlay.SIDEBAR_WIDTH,
 			height = this.rect.height,
 			bounds = this.path.bounds(feature as any),
 			dx = bounds[1][0] - bounds[0][0],

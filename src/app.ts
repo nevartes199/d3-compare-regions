@@ -1,14 +1,17 @@
 import * as d3 from 'd3'
 
 import 'styles/app.scss'
-import { ComponentBase, Map } from 'components'
+import { ComponentBase, Map, D3Selection, MapOverlay } from 'components'
 import { Data } from './data'
 
 export class App {
-	root: any
+	root: D3Selection
 	components: ComponentBase[]
 	data: Data
 	lastRect: ClientRect
+	
+	map: Map
+	info: MapOverlay
 	
 	constructor(public host: Element) {
 		this.data = new Data()
@@ -16,8 +19,12 @@ export class App {
 		this.root = d3.select(this.host)
 		this.root.classed('viz-container', true)
 		
+		this.map = new Map(this.root)
+		this.info = new MapOverlay(this.root)
+		
 		this.components = [
-			new Map(this.root)
+			this.map,
+			this.info
 		]
 		
 		window['app'] = this
@@ -31,5 +38,19 @@ export class App {
 	resize() {
 		this.lastRect = this.host.getBoundingClientRect()
 		this.components.forEach(c => c.resize(this.lastRect))
+	}
+	
+	select = (data: Feature, shape: SVGPathElement) => {
+		let newSelection = this.map.select(data, shape)
+		this.info.showSidebar(newSelection || data)
+	}
+	
+	deselect = () => {
+		let newSelection = this.map.deselect()
+		if (newSelection) {
+			this.info.showSidebar(newSelection)
+		} else {
+			this.info.hideSidebar()
+		}
 	}
 }

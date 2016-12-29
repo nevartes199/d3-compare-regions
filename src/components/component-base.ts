@@ -69,6 +69,10 @@ export abstract class ComponentBase {
 	}
 	
 	applyOptions(options, appliers) {
+		if (!options) {
+			return
+		}
+		
 		for (let optionName in appliers) {
 			if (optionName in options) {
 				appliers[optionName](options[optionName])

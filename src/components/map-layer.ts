@@ -31,12 +31,15 @@ export class MapLayer extends ComponentBase {
 			.classed('land', true)
 			.attr('data-name', (d: Feature) => d.properties.name)
 		
-		let select = this.map.select
+		let selectionCallback = this.app.select
+		
 		let land = childs
 			.append('path')
 			.on('click', function(feature) {
-				select(feature, this as SVGPathElement)
+				selectionCallback(feature, this as SVGPathElement)
 			})
+			.on('mouseenter', this.app.info.showLegend)
+			.on('mouseleave', this.app.info.clearLegend)
 		
 		let boundaries = this.root
 			.append('g')
