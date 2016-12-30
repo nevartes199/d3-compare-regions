@@ -1,7 +1,7 @@
 import * as d3 from 'd3'
 
 import 'styles/app.scss'
-import { ComponentBase, Map, D3Selection, MapOverlay } from 'components'
+import { ComponentBase, Map, D3Selection, MapOverlay, InfoBox } from 'components'
 import { Data } from './data'
 
 export class App {
@@ -52,5 +52,22 @@ export class App {
 		} else {
 			this.info.hideSidebar()
 		}
+	}
+	
+	compare = () => {
+		let selection = this.map.selection
+		if (!selection || !this.info.canCompare(selection.data)) {
+			return
+		}
+		
+		this.info.addToComparison(selection.data, selection.element.node() as SVGPathElement)
+		// TODO: global options with animation durations et al
+		this.map.cameraAdjustBounds()
+		setTimeout(this.map.clearSelection, 300)
+	}
+	
+	removeComparison(box: InfoBox) {
+		this.info.removeFromComparison(box)
+		this.map.cameraAdjustBounds(true)
 	}
 }

@@ -1,11 +1,13 @@
+$sidebar-margin: 64px;
 $sidebar-width: 300px;
 
 div.info-box {
+  user-select: none;
   pointer-events: none;
   position: absolute;
   width: 300px;
   top: 16px;
-  right: 64px;
+  left: calc(100% - #{$sidebar-margin} - #{$sidebar-width});
 
   transform-origin: 50% 100%;
 
@@ -19,7 +21,7 @@ div.info-box {
   padding: 8px;
   box-sizing: border-box;
   height: 36px;
-  will-change: background, height, top;
+  will-change: background, height, top, left, right;
 
   .title {
     width: 100%;
@@ -37,6 +39,40 @@ div.info-box {
     }
   }
 
+  .compare {
+    position: absolute;
+    margin: 8px;
+    width: calc(100% - 16px);
+    bottom: 0;
+    left: 0;
+  }
+
+  &.pinned {
+    right: unset;
+    transition: left 300ms ease-out, top 300ms ease-out, height 300ms ease-out !important;
+    top: 0 !important;
+    height: 100% !important;
+    background: rgba(255,255,255,.9) !important;
+
+    &:nth-of-type(1) { left: 0; }
+    &:nth-of-type(2) { left: $sidebar-width; }
+    &:nth-of-type(3) { left: $sidebar-width * 2; }
+    &:not(:first-of-type) { border-left: 2px solid gray; }
+
+    .close {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .compare {
+      display: none !important;
+    }
+  }
+
   &.expanded {
     pointer-events: all;
     transition: background 300ms ease-out, top 300ms ease-out, height 300ms ease-out;
@@ -50,10 +86,6 @@ div.info-box {
       overflow: visible;
       font-size: 16px;
     }
-  }
-
-  &.pinned {
-
   }
 }
 

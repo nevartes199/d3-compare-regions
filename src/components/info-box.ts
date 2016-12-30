@@ -1,6 +1,6 @@
 import { ComponentBase, D3Selection, D3DataSelection } from 'components'
 
-export type InfoBoxState = 'legend' | 'sidebar' | 'pinned'
+export type InfoBoxState = 'legend' | 'sidebar' | 'comparison'
 
 const FADE_DURATION = 300
 
@@ -39,8 +39,23 @@ export class InfoBox extends ComponentBase {
 		setTimeout(this.initDetails, FADE_DURATION * 2)
 	}
 	
-	remove() {
+	remove = () => {
 		this.fadeOut()
+		if (this.state === 'comparison') {
+			
+		}
+	}
+	
+	stick() {
+		this.root.classed('pinned', true)
+		
+		this.root
+			.append('div')
+			.classed('close', true)
+			.text('×')
+			.on('click', () => {
+				this.app.removeComparison(this)
+			})
 	}
 	
 	private initDetails = () => {
@@ -48,6 +63,14 @@ export class InfoBox extends ComponentBase {
 			.append('div')
 			.classed('subtitle', true)
 			.text(d => d.properties.type)
+		
+		if (this.app.info.canCompare(this.data)) {
+			this.root
+				.append('button')
+				.classed('compare', true)
+				.text('Compare with other region')
+				.on('click', this.app.compare)
+		}
 	}
 	
 	private fadeIn() {

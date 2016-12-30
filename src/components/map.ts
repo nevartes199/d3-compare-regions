@@ -10,7 +10,11 @@ const ROTATION: [number, number] = [-11, 0]
 const PRECISION = .05
 const LAYER_ORDER: LayerType[] = ['region', 'country', 'state']
 const ZOOM_DURATION = 600
+const MIN_SCALE = 0.5
 const MAX_SCALE = 48
+
+const SIDEBAR_SIZE = 300
+const SIDEBAR_MARGIN = 64
 
 export interface MapSelection {
 	data: Feature,
@@ -27,6 +31,9 @@ export class Map extends ComponentBase {
 	layers: MapLayer[] = []
 	layersRoot: D3Selection
 	layerIndex: number = 0
+	
+	leftBound = 0
+	rightBound = SIDEBAR_SIZE
 	
 	selection: MapSelection
 	
@@ -161,7 +168,7 @@ export class Map extends ComponentBase {
 			let selection = this.selection ? this.selection.data : false
 			let isDirectChild = layer.parent && layer.parent.data === selection
 			let isBelowCurrent = idx > this.layerIndex
-			if (isBelowCurrent && !isDirectChild) {
+			if ((isBelowCurrent && !isDirectChild) || (!selection && idx > 0)) {
 				layer.destroy()
 				return false
 			} else {
@@ -180,15 +187,20 @@ export class Map extends ComponentBase {
 	}
 	
 	cameraFocus = (feature: Feature) => {
-		let width = this.rect.width,
-			height = this.rect.height,
+		let width = this.rect.width - this.rightBound - this.leftBound - SIDEBAR_MARGIN
+		let center = this.leftBound + width / 2
+		
+		let height = this.rect.height,
 			bounds = this.path.bounds(feature as any),
 			dx = bounds[1][0] - bounds[0][0],
 			dy = bounds[1][1] - bounds[0][1],
 			x = (bounds[0][0] + bounds[1][0]) / 2,
 			y = (bounds[0][1] + bounds[1][1]) / 2,
-			scale = Math.max(1, Math.min(MAX_SCALE, 0.9 / Math.max(dx / width, dy / height))),
-			translate = [width / 2 - scale * x, height / 2 - scale * y]
+			scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, 0.9 / Math.max(dx / width, dy / height))),
+			translate = [center - scale * x, height / 2 - scale * y]
+		
+		console.info(this.rect.width, width, center)
+		console.log(scale)
 		
 		let transformation = d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
 		this.onCameraAnimationStart()
@@ -204,5 +216,16 @@ export class Map extends ComponentBase {
 			.duration(ZOOM_DURATION)
 			.call(this.zoom.transform, d3.zoomIdentity)
 			.on('end', this.onCameraAnimationEnd)
+	}
+	
+	cameraAdjustBounds(refresh = false) {
+		this.leftBound = this.app.info.comparison.length * SIDEBAR_SIZE
+		if (refresh) {
+			if (this.selection) {
+				this.cameraFocus(this.selection.data)
+			} else {
+				this.cameraReset()
+			}
+		}
 	}
 }
