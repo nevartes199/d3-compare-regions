@@ -20,7 +20,7 @@ export class MapLayer extends ComponentBase {
 	
 	onInit() {
 		let contextData = this.parent ? this.parent.data.properties : undefined
-		let data = this.data.getShapes(this.type, contextData)
+		let data = this.app.data.getShapes(this.type, contextData)
 		let boundaryData = this.app.data.getBoundaries(this.type, contextData)
 		
 		let childs = this.root

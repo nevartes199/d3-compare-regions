@@ -2,21 +2,18 @@ import * as d3 from 'd3'
 
 import 'styles/map-overlay.scss'
 
-import { ComponentBase, D3Selection } from 'components'
-
-const LEGEND_FADE_NAME = 'lfade'
-const LEGEND_FADE_DURATION = 300
+import { ComponentBase, D3Selection, InfoBox } from 'components'
 
 export class MapOverlay extends ComponentBase {
-	static readonly SIDEBAR_WIDTH = 300
-	
 	wrapper = {
 		type: 'div',
 		id: 'map-overlay'
 	}
 	
-	legend: D3Selection
-	boxTitle: D3Selection
+	legend: InfoBox
+	info: InfoBox
+	
+	comparison: InfoBox[]
 	
 	onInit() {
 	}
@@ -26,64 +23,36 @@ export class MapOverlay extends ComponentBase {
 	
 	showLegend = (data: Feature) => {
 		this.clearLegend()
-		
-		this.legend = this.root
-			.append('div')
-			.datum(data)
-			.classed('legend', true)
-			.text(d => d.properties.name)
-			.style('opacity', 0)
-			.style('margin-top', '-20px')
-			
-		this.legend
-			.transition(LEGEND_FADE_NAME)
-			.duration(LEGEND_FADE_DURATION)
-			.style('opacity', 1)
-			.style('margin-top', '0px')
+		this.legend = new InfoBox(this.root, data)
 	}
 	
 	clearLegend = () => {
 		if (this.legend) {
-			this.legend
-				.transition(LEGEND_FADE_NAME)
-				.duration(LEGEND_FADE_DURATION)
-				.style('opacity', 0)
-				.style('margin-top', '20px')
-				.on('end', function () {
-					d3.select(this).remove()
-				})
+			this.legend.remove()
+			this.legend = null
 		}
-		
-		this.legend = null
 	}
 	
 	showSidebar = (data: Feature) => {
-		if (!this.legend || this.legend.datum() !== data) {
+		if (!this.legend || this.legend.data !== data) {
 			this.showLegend(data)
 		}
 		
-		if (this.boxTitle) {
+		if (this.info) {
 			this.hideSidebar()
+			// TODO Update infobar instead of replacing
 		}
 		
-		this.boxTitle = this.legend
-		this.legend = null
+		this.info = this.legend
+		this.info.expand()
 		
-		this.boxTitle.classed('expanded', true)
+		this.legend = null
 	}
 	
 	hideSidebar() {
-		console.log('hiding sidebar')
-		if (this.boxTitle) {
-			this.boxTitle
-				.transition()
-				.duration(LEGEND_FADE_DURATION)
-				.style('opacity', 0)
-				.on('end', function () {
-					d3.select(this).remove()
-				})
-			
-			this.boxTitle = null
+		if (this.info) {
+			this.info.remove()
+			this.info = null
 		}
 	}
 }

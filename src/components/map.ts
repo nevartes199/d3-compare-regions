@@ -135,7 +135,7 @@ export class Map extends ComponentBase {
 			.append('g')
 			.classed('world', true)
 			.append('path')
-			.data(this.data.getShapes('world').features)
+			.data(this.app.data.getShapes('world').features)
 		
 		this.addResizer((rect) => {
 			ocean
@@ -180,7 +180,7 @@ export class Map extends ComponentBase {
 	}
 	
 	cameraFocus = (feature: Feature) => {
-		let width = this.rect.width - MapOverlay.SIDEBAR_WIDTH,
+		let width = this.rect.width,
 			height = this.rect.height,
 			bounds = this.path.bounds(feature as any),
 			dx = bounds[1][0] - bounds[0][0],

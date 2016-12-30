@@ -1,29 +1,71 @@
 $sidebar-width: 300px;
 
-div.legend {
+div.info-box {
+  pointer-events: none;
   position: absolute;
   width: 300px;
   top: 16px;
   right: 64px;
 
+  transform-origin: 50% 100%;
+
   background: rgba(255,255,255,.4);
 
-  font-size: 18px;
   font-family: monospace;
   text-transform: uppercase;
   text-shadow: 0 0 0.1em white;
-  font-weight: bold;
   color: #333;
   text-align: center;
+  padding: 8px;
+  box-sizing: border-box;
+  height: 36px;
+  will-change: background, height, top;
 
-  height: 25px;
-  line-height: 25px;
+  .title {
+    width: 100%;
+    transition: width 300ms ease-out;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    font-size: 18px;
+    font-weight: bold;
+    .subtitle {
+      text-transform: capitalize;
+      color: #999;
+      font-size: 12px;
+      animation: rolldown 100ms ease-out 1;
+    }
+  }
 
   &.expanded {
-    transition: all 300ms ease-out;
+    pointer-events: all;
+    transition: background 300ms ease-out, top 300ms ease-out, height 300ms ease-out;
     background: rgba(255,255,255,.8);
     height: calc(100% - 128px);
 
     top: 64px;
+
+    .title {
+      width: 0 !important;
+      overflow: visible;
+      font-size: 16px;
+    }
+  }
+
+  &.pinned {
+
+  }
+}
+
+
+@keyframes rolldown {
+  0% {
+    opacity: 0;
+    margin-top: -12px;
+  }
+
+  100% {
+    opacity: 1;
+    margin-top: 0;
   }
 }

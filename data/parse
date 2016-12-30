@@ -26,6 +26,7 @@ mapshaper \
         snap combine-files \
     -rename-layers raw,50m \
     -rename-fields target=raw country_code=adm0_a3,country=admin,state=name,state_code=postal \
+    -rename-fields target=50m country_short=name \
     \
     -erase bbox=-172,62.9,-168.5,63.9 \
     -clip bbox=-181,-57,181,87 \
@@ -35,11 +36,13 @@ mapshaper \
     -filter target=raw 'type_en!=="Overseas department"' \
     -filter-fields target=raw country,country_code,state,state_code \
     \
+    -join 50m target=raw keys=country_code,adm0_a3 fields=continent,region_un,subregion,country_short \
+    -each target=raw "country=country_short" \
+    \
     -filter target=raw "$HAS_STATES_LAYER" no-replace name=state \
     -filter-fields target=state country,state,state_code \
     -each target=state "type='state', name=state, has_sublayer=false" \
     \
-    -join 50m target=raw keys=country_code,adm0_a3 fields=continent,region_un,subregion \
     -rename-fields target=raw region=region_un,sub_region=subregion \
     -filter target=raw 'region !== null' \
     -filter target=raw 'region.indexOf("Seven") === -1' \

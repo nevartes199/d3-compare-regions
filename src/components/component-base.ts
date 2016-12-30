@@ -1,8 +1,9 @@
 import * as d3 from 'd3'
 import { App } from '../app'
-import { Data } from '../data'
 
 export type D3Selection = d3.Selection<d3.BaseType, any, any, any>
+export type D3DataSelection<Datum> = d3.Selection<d3.BaseType, Datum, any, any>
+
 export type Resizer = (rect: ClientRect) => void
 
 export interface ComponentWrapper {
@@ -20,10 +21,6 @@ export abstract class ComponentBase {
 	
 	get app(): App {
 		return window['app'] as App
-	}
-	
-	get data(): Data {
-		return this.app.data
 	}
 	
 	constructor(public root: D3Selection) {
