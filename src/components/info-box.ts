@@ -1,4 +1,4 @@
-import { ComponentBase, D3Selection, D3DataSelection } from 'components'
+import { ComponentBase, D3Selection, D3DataSelection, LAYER_ORDER } from 'components'
 
 export type InfoBoxState = 'legend' | 'sidebar' | 'comparison'
 
@@ -59,10 +59,12 @@ export class InfoBox extends ComponentBase {
 	}
 	
 	private initDetails = () => {
-		this.title
-			.append('div')
-			.classed('subtitle', true)
-			.text(d => d.properties.type)
+		if (this.data.properties.type !== 'region') {
+			this.title
+				.append('div')
+				.classed('subtitle', true)
+				.text(this.getSubtitle)
+		}
 		
 		if (this.app.info.canCompare(this.data)) {
 			this.root
@@ -92,5 +94,11 @@ export class InfoBox extends ComponentBase {
 		} else {
 			this.root.remove()
 		}
+	}
+	
+	private getSubtitle(data: Feature) {
+		let type = data.properties.type
+		let idx = LAYER_ORDER.indexOf(type)
+		return data.properties[LAYER_ORDER[idx - 1]] || type
 	}
 }

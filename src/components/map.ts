@@ -4,11 +4,12 @@ import 'styles/map.scss'
 
 import { ComponentBase, MapLayer, D3Selection, MapOverlay } from 'components'
 
+export const LAYER_ORDER: LayerType[] = ['region', 'country', 'state']
+
 const EQR_WIDTH = 640
 const ASPECT_RATIO = 2.57617729 // Approximated map aspect ratio after removing Antartica
 const ROTATION: [number, number] = [-11, 0]
 const PRECISION = .05
-const LAYER_ORDER: LayerType[] = ['region', 'country', 'state']
 const ZOOM_DURATION = 600
 const MIN_SCALE = 0.5
 const MAX_SCALE = 48
