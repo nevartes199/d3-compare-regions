@@ -50,7 +50,7 @@ export class App {
 		if (newSelection) {
 			this.info.showSidebar(newSelection)
 		} else {
-			this.info.hideSidebar()
+			this.info.removeSidebar()
 		}
 	}
 	

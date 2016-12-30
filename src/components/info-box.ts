@@ -1,4 +1,4 @@
-import { ComponentBase, D3Selection, D3DataSelection, LAYER_ORDER } from 'components'
+import { ComponentBase, D3Selection, D3DataSelection, LAYER_ORDER, InfoThumb } from 'components'
 
 export type InfoBoxState = 'legend' | 'sidebar' | 'comparison'
 
@@ -12,6 +12,9 @@ export class InfoBox extends ComponentBase {
 	
 	state: InfoBoxState = 'legend'
 	
+	thumbContainer: D3DataSelection<Feature>
+	thumb: InfoThumb
+	
 	title: D3DataSelection<Feature>
 	
 	constructor(root: D3Selection, public data: Feature) {
@@ -24,6 +27,10 @@ export class InfoBox extends ComponentBase {
 			.datum(this.data)
 			.style('opacity', 0)
 			.style('margin-top', '-20px')
+		
+		this.thumbContainer = root
+			.append('div')
+			.classed('thumb', true)
 		
 		this.title = root
 			.append('div')
@@ -41,12 +48,9 @@ export class InfoBox extends ComponentBase {
 	
 	remove = () => {
 		this.fadeOut()
-		if (this.state === 'comparison') {
-			
-		}
 	}
 	
-	stick() {
+	pin(shape: SVGPathElement) {
 		this.root.classed('pinned', true)
 		
 		this.root
@@ -56,6 +60,8 @@ export class InfoBox extends ComponentBase {
 			.on('click', () => {
 				this.app.removeComparison(this)
 			})
+		
+		this.thumb = new InfoThumb(this.thumbContainer)
 	}
 	
 	private initDetails = () => {

@@ -38,6 +38,8 @@ export class Map extends ComponentBase {
 	
 	selection: MapSelection
 	
+	worldLand: Feature
+	
 	onInit() {
 		this.projection = d3.geoEquirectangular()
 			.rotate(ROTATION)
@@ -72,6 +74,7 @@ export class Map extends ComponentBase {
 			])
 		
 		this.layers.forEach(l => l.resize(rect))
+		this.cameraReset()
 	}
 	
 	select = (target: Feature, targetEl: SVGPathElement): Feature => {
@@ -91,11 +94,12 @@ export class Map extends ComponentBase {
 		let targetSelection = d3.select(targetEl)
 		targetSelection.classed('selected', true)
 		
-		this.cameraFocus(target)
 		this.selection = {
 			data: target,
 			element: targetSelection
 		}
+		
+		this.cameraFocus(target)
 		
 		this.removeExtraLayers()
 		
@@ -124,8 +128,8 @@ export class Map extends ComponentBase {
 			this.selection.element.classed('selected', false)
 		}
 		
-		this.cameraReset()
 		this.selection = null
+		this.cameraReset()
 		this.removeExtraLayers()
 	}
 	
@@ -139,11 +143,12 @@ export class Map extends ComponentBase {
 			.append('g')
 			.classed('layers', true)
 		 
+		this.worldLand = this.app.data.getShapes('world').features[0]
 		let world = this.layersRoot
 			.append('g')
 			.classed('world', true)
 			.append('path')
-			.data(this.app.data.getShapes('world').features)
+			.datum(this.worldLand)
 		
 		this.addResizer((rect) => {
 			ocean
@@ -188,7 +193,14 @@ export class Map extends ComponentBase {
 	}
 	
 	cameraFocus = (feature: Feature) => {
-		let width = this.rect.width - this.rightBound - this.leftBound - SIDEBAR_MARGIN
+		let width = this.rect.width - this.leftBound
+		let margin = .05
+		
+		if (this.selection) {
+			width -= this.rightBound + SIDEBAR_MARGIN
+			margin = .1
+		}
+		
 		let center = this.leftBound + width / 2
 		
 		let height = this.rect.height,
@@ -197,11 +209,8 @@ export class Map extends ComponentBase {
 			dy = bounds[1][1] - bounds[0][1],
 			x = (bounds[0][0] + bounds[1][0]) / 2,
 			y = (bounds[0][1] + bounds[1][1]) / 2,
-			scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, 0.9 / Math.max(dx / width, dy / height))),
+			scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, (1 - margin) / Math.max(dx / width, dy / height))),
 			translate = [center - scale * x, height / 2 - scale * y]
-		
-		console.info(this.rect.width, width, center)
-		console.log(scale)
 		
 		let transformation = d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
 		this.onCameraAnimationStart()
@@ -212,11 +221,7 @@ export class Map extends ComponentBase {
 	}
 	
 	cameraReset() {
-		this.onCameraAnimationStart()
-		this.root.transition()
-			.duration(ZOOM_DURATION)
-			.call(this.zoom.transform, d3.zoomIdentity)
-			.on('end', this.onCameraAnimationEnd)
+		this.cameraFocus(this.worldLand)
 	}
 	
 	cameraAdjustBounds(refresh = false) {

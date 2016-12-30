@@ -39,7 +39,7 @@ export class MapLayer extends ComponentBase {
 				selectionCallback(feature, this as SVGPathElement)
 			})
 			.on('mouseenter', this.app.info.showLegend)
-			.on('mouseleave', this.app.info.clearLegend)
+			.on('mouseleave', this.app.info.removeLegend)
 		
 		let boundaries = this.root
 			.append('g')

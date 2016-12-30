@@ -4,7 +4,6 @@ declare namespace Topojson {
 		feature(topology: any, object: any): any
 		mesh(topology: any, object: any, filter?: any): any
 		meshArcs(topology: any, object: any, filter?: any): any
-		merge()
 		simplify(topology: any, minWeight?: number)
 	}
 }

@@ -24,11 +24,16 @@ export class MapOverlay extends ComponentBase {
 	}
 	
 	showLegend = (data: Feature) => {
-		this.clearLegend()
+		this.removeLegend()
+		
+		if (this.sidebar && this.sidebar.data === data) {
+			return
+		}
+		
 		this.legend = new InfoBox(this.root, data)
 	}
 	
-	clearLegend = () => {
+	removeLegend = () => {
 		if (this.legend) {
 			this.legend.remove()
 			this.legend = null
@@ -40,18 +45,14 @@ export class MapOverlay extends ComponentBase {
 			this.showLegend(data)
 		}
 		
-		if (this.sidebar) {
-			this.hideSidebar()
-			// TODO Update infobar instead of replacing
-		}
-		
+		this.removeSidebar()
 		this.sidebar = this.legend
 		this.sidebar.expand()
 		
 		this.legend = null
 	}
 	
-	hideSidebar() {
+	removeSidebar() {
 		if (this.sidebar) {
 			this.sidebar.remove()
 			this.sidebar = null
@@ -81,7 +82,7 @@ export class MapOverlay extends ComponentBase {
 		this.sidebar = null
 		
 		this.comparison.push(box)
-		box.stick()
+		box.pin(shape)
 	}
 	
 	removeFromComparison(box: InfoBox) {
