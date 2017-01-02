@@ -1,4 +1,10 @@
 svg.thumb {
-  outline: 1px solid;
   width: 100%;
+  margin-bottom: 8px;
+
+  path {
+    fill: silver;
+    stroke: gray;
+    stroke-width: 1px;
+  }
 }

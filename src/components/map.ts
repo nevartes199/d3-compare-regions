@@ -5,21 +5,19 @@ import 'styles/map.scss'
 import { ComponentBase, MapLayer, D3Selection } from 'components'
 
 export const LAYER_ORDER: LayerType[] = ['region', 'country', 'state']
+export const ROTATION: [number, number] = [-11, 0]
 
 const EQR_WIDTH = 640
 const ASPECT_RATIO = 2.57617729 // Approximated map aspect ratio after removing Antartica
-const ROTATION: [number, number] = [-11, 0]
 const PRECISION = .05
 const ZOOM_DURATION = 600
 const MIN_SCALE = 0.5
 const MAX_SCALE = 48
 
-const SIDEBAR_SIZE = 300
-const SIDEBAR_MARGIN = 64
-
 export interface MapSelection {
 	data: Feature,
-	element: D3Selection
+	element: D3Selection,
+	layer: MapLayer
 }
 
 export class Map extends ComponentBase {
@@ -34,7 +32,7 @@ export class Map extends ComponentBase {
 	layerIndex: number = 0
 	
 	leftBound = 0
-	rightBound = SIDEBAR_SIZE
+	rightBound = 0
 	
 	selection: MapSelection
 	
@@ -126,15 +124,16 @@ export class Map extends ComponentBase {
 		return this.layers[index]
 	}
 	
-	select = (target: Feature, targetEl: SVGPathElement): Feature => {
+	select = (target: Feature, targetEl: SVGPathElement) => {
 		if (this.selection) {
+			this.selection.element.classed('selected', false)
 			if (this.selection.data === target) {
-				// If the seletected feature has no sublayers select the parent
+				// If the seletected feature has no sublayers, give a different return
+				// to notify that the parent should be selected instead
 				let currentLayer = this.layers[this.layerIndex]
-				this.select(currentLayer.parent.data, currentLayer.parent.element.node() as SVGPathElement)
-				return currentLayer.parent.data
+				return currentLayer.parent
 			} else {
-				this.selection.element.classed('selected', false)
+				
 			}
 		}
 		
@@ -145,16 +144,18 @@ export class Map extends ComponentBase {
 		
 		this.selection = {
 			data: target,
-			element: targetSelection
+			element: targetSelection,
+			layer: this.layers[this.layers.length - 1]
 		}
 		
 		this.cameraFocus(target)
-		
 		this.removeExtraLayers()
 		
 		if (this.selection.data.properties.has_sublayer) {
 			this.initLayer(this.layerIndex + 1, this.selection)
 		}
+		
+		return true
 	}
 	
 	deselect = (): Feature => {
@@ -197,14 +198,18 @@ export class Map extends ComponentBase {
 		})
 	}
 	
-	cameraFocus = (feature: Feature) => {
-		let width = this.rect.width - this.leftBound
-		let margin = .05
-		
+	cameraRefresh() {
 		if (this.selection) {
-			width -= this.rightBound + SIDEBAR_MARGIN
-			margin = .1
+			this.cameraFocus(this.selection.data)
+		} else {
+			this.cameraFocus(this.worldLand)
 		}
+	}
+	
+	cameraFocus = (feature: Feature) => {
+		this.cameraAdjustBounds()
+		let width = this.rect.width - this.leftBound - this.rightBound
+		let margin = .05
 		
 		let height = this.rect.height
 		let center = this.leftBound + width / 2
@@ -221,17 +226,6 @@ export class Map extends ComponentBase {
 			.on('end', this.onCameraAnimationEnd)
 	}
 	
-	cameraAdjustBounds(refresh = false) {
-		this.leftBound = this.app.info.comparison.length * SIDEBAR_SIZE
-		if (refresh) {
-			if (this.selection) {
-				this.cameraFocus(this.selection.data)
-			} else {
-				this.cameraFocus(this.worldLand)
-			}
-		}
-	}
-	
 	fitGeometry(geometry: Feature, width: number, height: number, margin = 0, center?: number) {
 		if (!center) {
 			center = width / 2
@@ -246,5 +240,23 @@ export class Map extends ComponentBase {
 			translate = [center - scale * x, height / 2 - scale * y]
 		
 		return { scale, translate }
+	}
+	
+	private cameraAdjustBounds() {
+		let sidebar = d3.select('.info-box.expanded:not(.pinned)').node()
+		let panels = d3.selectAll('.info-box.pinned').nodes()
+		
+		this.rightBound = 0
+		if (sidebar) {
+			let sidebarRect = (sidebar as Element).getBoundingClientRect()
+			let sidebarMargin = this.rect.right - sidebarRect.right
+			this.rightBound += sidebarRect.width + sidebarMargin
+		}
+		
+		this.leftBound = 0
+		if (panels.length) {
+			let panelRect = (panels[0] as Element).getBoundingClientRect()
+			this.leftBound += panelRect.width * panels.length
+		}
 	}
 }

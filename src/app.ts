@@ -41,8 +41,15 @@ export class App {
 	}
 	
 	select = (data: Feature, shape: SVGPathElement) => {
-		let newSelection = this.map.select(data, shape)
-		this.info.showSidebar(newSelection || data)
+		let selection = this.map.selection
+		if (selection && selection.data === data) {
+			let parent = selection.layer.parent
+			this.info.showSidebar(parent.data)
+			this.map.select(parent.data, parent.element.node() as SVGPathElement)
+		} else {
+			this.info.showSidebar(data)
+			this.map.select(data, shape)
+		}
 	}
 	
 	deselect = () => {
@@ -61,13 +68,11 @@ export class App {
 		}
 		
 		this.info.addToComparison(selection.data, selection.element.node() as SVGPathElement)
-		// TODO: global options with animation durations et al
-		this.map.cameraAdjustBounds()
 		setTimeout(this.map.clearSelection, 300)
 	}
 	
 	removeComparison(box: InfoBox) {
 		this.info.removeFromComparison(box)
-		this.map.cameraAdjustBounds(true)
+		this.map.cameraRefresh()
 	}
 }
