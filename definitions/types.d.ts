@@ -19,6 +19,7 @@ declare interface FeatureData {
 	name: string
 	type: LayerType
 	has_sublayer: boolean
+	color?: string
 }
 
 declare interface RegionData {

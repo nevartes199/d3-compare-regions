@@ -12,11 +12,13 @@ export class MapOverlay extends ComponentBase {
 	sidebar: InfoBox = null
 	
 	comparison: InfoBox[] = []
-	
-	onInit() {
-	}
-	
-	onResize() {
+		
+	onResize(rect: ClientRect) {
+		if (this.sidebar) {
+			this.sidebar.resize(rect)
+		}
+		
+		this.comparison.forEach(comparisonBox => comparisonBox.resize(rect))
 	}
 	
 	showLegend = (data: Feature) => {
@@ -61,7 +63,12 @@ export class MapOverlay extends ComponentBase {
 		}
 		
 		for (let box of this.comparison) {
-			if (box.data === data) {
+			let target = data.properties
+			let boxData = box.data.properties
+			if (
+				target.type === boxData.type &&
+				target.name === boxData.name
+			) {
 				return false
 			}
 		}

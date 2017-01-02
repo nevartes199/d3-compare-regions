@@ -26,7 +26,7 @@ export abstract class ComponentBase {
 	constructor(public root: D3Selection) {
 	}
 	
-	abstract onInit()
+	onInit() {}
 	onResize(rect: ClientRect) {}
 	
 	init() {

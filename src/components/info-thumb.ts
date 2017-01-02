@@ -25,20 +25,19 @@ export class InfoThumb extends ComponentBase {
 		let path = d3.geoPath()
 			.projection(this.projection)
 		
-		let geometry = this.data as any
-		// geometry = this.app.data.getShapes('world')
-		
+				
 		let host = this.root.node() as Element
 		let shapeRoot = this.root.append('g')
 		let shape = shapeRoot
 			.append('path')
-			.datum(geometry)
+			.datum(this.data)
+			.style('color', d => d.properties.color)
 		
 		this.addResizer(() => {
 			let rect = host.getBoundingClientRect()
-			this.projection.fitSize([rect.width, rect.height], geometry)
+			this.projection.fitSize([rect.width, rect.height], this.data)
 			
-			shape.attr('d', path)
+			shape.attr('d', path as any)
 		}, true)
 	}
 }

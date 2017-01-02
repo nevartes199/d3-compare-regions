@@ -11,7 +11,7 @@ const EQR_WIDTH = 640
 const ASPECT_RATIO = 2.57617729 // Approximated map aspect ratio after removing Antartica
 const PRECISION = .05
 const ZOOM_DURATION = 600
-const MIN_SCALE = 0.5
+const MIN_SCALE = 0.3
 const MAX_SCALE = 48
 
 export interface MapSelection {
@@ -37,7 +37,6 @@ export class Map extends ComponentBase {
 	selection: MapSelection
 	
 	worldLand: Feature
-	ready = false
 	
 	onInit() {
 		this.projection = d3.geoEquirectangular()
@@ -73,11 +72,7 @@ export class Map extends ComponentBase {
 			])
 		
 		this.layers.forEach(l => l.resize(rect))
-		
-		if (!this.ready) {
-			this.ready = true
-			this.cameraFocus(this.worldLand)
-		}
+		this.cameraRefresh()
 	}
 	
 	onCameraAnimationStart = () => {
@@ -99,19 +94,11 @@ export class Map extends ComponentBase {
 			.classed('layers', true)
 		
 		this.worldLand = this.app.data.getShapes('world').features[0]
-		let world = this.layersRoot
-			.append('g')
-			.classed('world', true)
-			.append('path')
-			.datum(this.worldLand)
 		
 		this.addResizer((rect) => {
 			ocean
 				.attr('width', rect.width)
 				.attr('height', rect.height)
-			
-			world
-				.attr('d', this.path)
 		})
 	}
 	
@@ -127,15 +114,21 @@ export class Map extends ComponentBase {
 	select = (target: Feature, shape: D3Selection) => {
 		if (this.selection) {
 			this.selection.shape.classed('selected', false)
+			this.selection.layer.root.classed('with-selection', false)
 		}
-		shape.classed('selected', true)
 		
 		this.layerIndex = LAYER_ORDER.indexOf(target.properties.type)
+		let layer = this.layers[this.layerIndex]
+		
+		shape.classed('selected', true)
+		layer.root.classed('with-selection', true)
+		
+		this.root.classed('with-selection', true)
 		
 		this.selection = {
 			data: target,
 			shape: shape,
-			layer: this.layers[this.layerIndex]
+			layer: layer
 		}
 		
 		this.cameraFocus(target)
@@ -149,7 +142,10 @@ export class Map extends ComponentBase {
 	clearSelection = () => {
 		if (this.selection) {
 			this.selection.shape.classed('selected', false)
+			this.selection.layer.root.classed('with-selection', false)
 		}
+		
+		this.root.classed('with-selection', false)
 		
 		this.layerIndex = 0
 		this.selection = null
@@ -220,13 +216,14 @@ export class Map extends ComponentBase {
 		let panels = d3.selectAll('.info-box.pinned').nodes()
 		
 		this.rightBound = 0
+		this.leftBound = 0
+		
 		if (sidebar) {
 			let sidebarRect = (sidebar as Element).getBoundingClientRect()
 			let sidebarMargin = this.rect.right - sidebarRect.right
 			this.rightBound += sidebarRect.width + sidebarMargin
 		}
 		
-		this.leftBound = 0
 		if (panels.length) {
 			let panelRect = (panels[0] as Element).getBoundingClientRect()
 			this.leftBound += panelRect.width * panels.length

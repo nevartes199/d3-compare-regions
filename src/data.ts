@@ -1,9 +1,15 @@
+import * as topo from 'topojson-client'
+import * as d3 from 'd3'
+
 const MAP_DATA = require('data/map.json')
 
-import * as topo from 'topojson-client'
-
 export class Data {
+	colorScale: d3.ScaleLinear<string, string>
+	
 	constructor() {
+		this.colorScale = d3.scaleLinear<string>()
+			.domain([0, 0.5, 1])
+			.range(['crimson', 'gray', 'gray'])
 	}
 	
 	getShapes(type: LayerType, context?: FeatureData) {
@@ -32,6 +38,19 @@ export class Data {
 		}
 		
 		return topo.mesh(MAP_DATA, data, (a, b) => a !== b)
+	}
+	
+	/**
+	 * Placeholder for fetching the color of each shape
+	 */
+	getColor = (feature: Feature) => {
+		if (!feature.properties.color) {
+			// Random between 0 and 10
+			let heatFactor = Math.floor(Math.random() * 10)
+			feature.properties.color = this.colorScale(heatFactor / 10)
+		}
+		
+		return feature.properties.color
 	}
 	
 	private getData(type: LayerType) {

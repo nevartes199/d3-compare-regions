@@ -73,7 +73,10 @@ export class App {
 		}
 		
 		this.info.addToComparison(selection.data, selection.shape.node() as SVGPathElement)
-		setTimeout(this.map.clearSelection, 300)
+		setTimeout(() => {
+			this.map.clearSelection()
+			this.info.removeLegend()
+		}, 300)
 	}
 	
 	removeComparison(box: InfoBox) {

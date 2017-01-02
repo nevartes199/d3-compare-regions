@@ -3,6 +3,7 @@
 .viz-container {
   background: $main-bg;
   width: 100%;
+  min-width: $box-width * 3;
   height: 100%;
   position: relative;
 }

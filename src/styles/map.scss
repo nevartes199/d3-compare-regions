@@ -9,6 +9,10 @@ svg#map {
   width: 100%;
   height: 100%;
 
+  &.animating * {
+    pointer-events: none !important;
+  }
+
   path {
     fill: none;
   }
@@ -19,10 +23,19 @@ svg#map {
   }
 
   .world path {
-    fill: #666;
+    display: none;
   }
 
+  // Fadeout all layer that don't belong to the current selection
+  &.with-selection .layer:not(.with-selection) { opacity: 0.2; }
+  // Except sublayers of the current selection
+  &.with-selection .layer.with-selection ~ .layer { opacity: 1; }
+
   .layer {
+    &.with-selection .land path:not(.selected) {
+      opacity: .4;
+    }
+
     .land path {
       pointer-events: visiblefill;
       transition: color 300ms ease-out;

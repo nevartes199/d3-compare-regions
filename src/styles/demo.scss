@@ -1,15 +1,19 @@
+@import "variables";
+$body-padding: 8px;
 html, body {
   width: 100%;
+  min-width: $res-min-width;
+  min-height: $res-min-height * (2 / 3);
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
 }
 
 body {
   background: white;
-  padding: 8px;
+  padding: $body-padding;
   box-sizing: border-box;
+  overflow: auto;
 }
 
 #viz-container {

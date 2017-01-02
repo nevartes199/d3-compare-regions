@@ -14,18 +14,18 @@ export class MapLayer extends ComponentBase {
 			type: 'g',
 			classes: ['layer', type]
 		}
-		
+
 		this.init()
 	}
 	
 	onInit() {
 		let contextData = this.parent ? this.parent.data.properties : undefined
-		let data = this.app.data.getShapes(this.type, contextData)
+		let shapesData = this.app.data.getShapes(this.type, contextData)
 		let boundaryData = this.app.data.getBoundaries(this.type, contextData)
 		
 		let childs = this.root
 			.selectAll('g')
-			.data(data.features)
+			.data(shapesData.features)
 			.enter()
 			.append('g')
 			.classed('land', true)
@@ -33,8 +33,9 @@ export class MapLayer extends ComponentBase {
 		
 		let selectionCallback = this.app.select
 		
-		let land = childs
+		let shapes = childs
 			.append('path')
+			.style('color', this.app.data.getColor)
 			.on('click', function(feature) {
 				selectionCallback(feature, this as SVGPathElement)
 			})
@@ -55,12 +56,12 @@ export class MapLayer extends ComponentBase {
 			.style('opacity', 1)
 		
 		this.addResizer(() => {
-			land.attr('d', this.map.path)
+			shapes.attr('d', this.map.path)
 			boundaries.attr('d', this.map.path)
 		}, this.parent !== undefined)
 	}
 	
 	destroy() {
-		this.root.html('')
+		this.root.remove()
 	}
 }
