@@ -1,5 +1,7 @@
 import { ComponentBase, D3Selection, D3DataSelection, LAYER_ORDER, InfoThumb } from 'components'
 
+import '../styles/info-box.scss'
+
 export type InfoBoxState = 'legend' | 'sidebar' | 'comparison'
 
 const FADE_DURATION = 300
@@ -30,7 +32,7 @@ export class InfoBox extends ComponentBase {
 		
 		this.thumbContainer = root
 			.append('div')
-			.classed('thumb', true)
+			.classed('thumb-container', true)
 		
 		this.title = root
 			.append('div')
@@ -43,7 +45,7 @@ export class InfoBox extends ComponentBase {
 	expand() {
 		this.state = 'sidebar'
 		this.root.classed('expanded', true)
-		setTimeout(this.initDetails, FADE_DURATION * 2)
+		setTimeout(this.addContentsDetails, FADE_DURATION * 2)
 	}
 	
 	remove = () => {
@@ -61,10 +63,10 @@ export class InfoBox extends ComponentBase {
 				this.app.removeComparison(this)
 			})
 		
-		this.thumb = new InfoThumb(this.thumbContainer)
+		this.thumb = new InfoThumb(this.thumbContainer, this.data)
 	}
 	
-	private initDetails = () => {
+	private addContentsDetails = () => {
 		if (this.data.properties.type !== 'region') {
 			this.title
 				.append('div')

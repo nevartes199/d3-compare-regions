@@ -2,7 +2,7 @@ import * as d3 from 'd3'
 
 import 'styles/map.scss'
 
-import { ComponentBase, MapLayer, D3Selection, MapOverlay } from 'components'
+import { ComponentBase, MapLayer, D3Selection } from 'components'
 
 export const LAYER_ORDER: LayerType[] = ['region', 'country', 'state']
 
@@ -39,6 +39,7 @@ export class Map extends ComponentBase {
 	selection: MapSelection
 	
 	worldLand: Feature
+	ready = false
 	
 	onInit() {
 		this.projection = d3.geoEquirectangular()
@@ -74,7 +75,55 @@ export class Map extends ComponentBase {
 			])
 		
 		this.layers.forEach(l => l.resize(rect))
-		this.cameraReset()
+		
+		if (!this.ready) {
+			this.ready = true
+			this.cameraFocus(this.worldLand)
+		}
+	}
+	
+	onCameraAnimationStart = () => {
+		this.root.classed('animating', true)
+	}
+	
+	onCameraAnimationEnd = () => {
+		this.root.classed('animating', false)
+	}
+	
+	initBaseLayers() {
+		let ocean = this.root
+			.append('rect')
+			.classed('ocean', true)
+			.on('click', this.app.deselect)
+		
+		this.layersRoot = this.root
+			.append('g')
+			.classed('layers', true)
+		
+		this.worldLand = this.app.data.getShapes('world').features[0]
+		let world = this.layersRoot
+			.append('g')
+			.classed('world', true)
+			.append('path')
+			.datum(this.worldLand)
+		
+		this.addResizer((rect) => {
+			ocean
+				.attr('width', rect.width)
+				.attr('height', rect.height)
+			
+			world
+				.attr('d', this.path)
+		})
+	}
+	
+	initLayer(index: number, context?: MapSelection) {
+		if (!this.layers[index]) {
+			let layerType = LAYER_ORDER[index]
+			this.layers[index] = new MapLayer(layerType, context)
+		}
+		
+		return this.layers[index]
 	}
 	
 	select = (target: Feature, targetEl: SVGPathElement): Feature => {
@@ -128,45 +177,10 @@ export class Map extends ComponentBase {
 			this.selection.element.classed('selected', false)
 		}
 		
+		this.layerIndex = 0
 		this.selection = null
-		this.cameraReset()
+		this.cameraFocus(this.worldLand)
 		this.removeExtraLayers()
-	}
-	
-	initBaseLayers() {
-		let ocean = this.root
-			.append('rect')
-			.classed('ocean', true)
-			.on('click', this.app.deselect)
-		
-		this.layersRoot = this.root
-			.append('g')
-			.classed('layers', true)
-		 
-		this.worldLand = this.app.data.getShapes('world').features[0]
-		let world = this.layersRoot
-			.append('g')
-			.classed('world', true)
-			.append('path')
-			.datum(this.worldLand)
-		
-		this.addResizer((rect) => {
-			ocean
-				.attr('width', rect.width)
-				.attr('height', rect.height)
-			
-			world
-				.attr('d', this.path)
-		})
-	}
-	
-	initLayer(index: number, context?: MapSelection) {
-		if (!this.layers[index]) {
-			let layerType = LAYER_ORDER[index]
-			this.layers[index] = new MapLayer(layerType, context)
-		}
-		
-		return this.layers[index]
 	}
 	
 	removeExtraLayers() {
@@ -183,15 +197,6 @@ export class Map extends ComponentBase {
 		})
 	}
 	
-	onCameraAnimationStart = () => {
-		// this.app.info.clearLegend()
-		this.root.classed('animating', true)
-	}
-	
-	onCameraAnimationEnd = () => {
-		this.root.classed('animating', false)
-	}
-	
 	cameraFocus = (feature: Feature) => {
 		let width = this.rect.width - this.leftBound
 		let margin = .05
@@ -201,27 +206,19 @@ export class Map extends ComponentBase {
 			margin = .1
 		}
 		
+		let height = this.rect.height
 		let center = this.leftBound + width / 2
 		
-		let height = this.rect.height,
-			bounds = this.path.bounds(feature as any),
-			dx = bounds[1][0] - bounds[0][0],
-			dy = bounds[1][1] - bounds[0][1],
-			x = (bounds[0][0] + bounds[1][0]) / 2,
-			y = (bounds[0][1] + bounds[1][1]) / 2,
-			scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, (1 - margin) / Math.max(dx / width, dy / height))),
-			translate = [center - scale * x, height / 2 - scale * y]
+		let transforms = this.fitGeometry(feature, width, height, margin, center)
+		let transformation = d3.zoomIdentity
+			.translate(transforms.translate[0], transforms.translate[1])
+			.scale(transforms.scale)
 		
-		let transformation = d3.zoomIdentity.translate(translate[0], translate[1]).scale(scale)
 		this.onCameraAnimationStart()
 		this.root.transition()
 			.duration(ZOOM_DURATION)
 			.call(this.zoom.transform, transformation)
 			.on('end', this.onCameraAnimationEnd)
-	}
-	
-	cameraReset() {
-		this.cameraFocus(this.worldLand)
 	}
 	
 	cameraAdjustBounds(refresh = false) {
@@ -230,8 +227,24 @@ export class Map extends ComponentBase {
 			if (this.selection) {
 				this.cameraFocus(this.selection.data)
 			} else {
-				this.cameraReset()
+				this.cameraFocus(this.worldLand)
 			}
 		}
+	}
+	
+	fitGeometry(geometry: Feature, width: number, height: number, margin = 0, center?: number) {
+		if (!center) {
+			center = width / 2
+		}
+		
+		let bounds = this.path.bounds(geometry as any),
+			dx = bounds[1][0] - bounds[0][0],
+			dy = bounds[1][1] - bounds[0][1],
+			x = (bounds[0][0] + bounds[1][0]) / 2,
+			y = (bounds[0][1] + bounds[1][1]) / 2,
+			scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, (1 - margin) / Math.max(dx / width, dy / height))),
+			translate = [center - scale * x, height / 2 - scale * y]
+		
+		return { scale, translate }
 	}
 }

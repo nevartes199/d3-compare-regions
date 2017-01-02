@@ -1,8 +1,4 @@
-import * as d3 from 'd3'
-
-import 'styles/map-overlay.scss'
-
-import { ComponentBase, D3Selection, InfoBox } from 'components'
+import { ComponentBase, InfoBox } from 'components'
 
 const COMPARISON_MAX_ITEMS = 3
 
