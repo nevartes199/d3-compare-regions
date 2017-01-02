@@ -7,15 +7,11 @@ import { ComponentBase, D3Selection, ROTATION } from 'components'
 export class InfoThumb extends ComponentBase {
 	wrapper = {
 		type: 'svg',
-		classes: ['thumb']
+		classes: ['thumb'],
+		before: '.title'
 	}
 	
 	projection: any
-	
-	constructor(root: D3Selection, public data: Feature) {
-		super(root)
-		this.init()
-	}
 	
 	onInit() {
 		this.projection = d3
@@ -25,17 +21,18 @@ export class InfoThumb extends ComponentBase {
 		let path = d3.geoPath()
 			.projection(this.projection)
 		
+		let data = this.host.datum() as any as Feature
 				
 		let host = this.root.node() as Element
 		let shapeRoot = this.root.append('g')
 		let shape = shapeRoot
 			.append('path')
-			.datum(this.data)
+			.datum(data)
 			.style('color', d => d.properties.color)
 		
 		this.addResizer(() => {
 			let rect = host.getBoundingClientRect()
-			this.projection.fitSize([rect.width, rect.height], this.data)
+			this.projection.fitSize([rect.width, rect.height], data)
 			
 			shape.attr('d', path as any)
 		}, true)

@@ -1,4 +1,4 @@
-import { ComponentBase, D3Selection, D3DataSelection, LAYER_ORDER, InfoThumb } from 'components'
+import { ComponentBase, D3Selection, D3DataSelection, LAYER_ORDER, InfoThumb, InfoDetails } from 'components'
 
 import '../styles/info-box.scss'
 
@@ -14,8 +14,8 @@ export class InfoBox extends ComponentBase {
 	
 	state: InfoBoxState = 'legend'
 	
-	thumbContainer: D3DataSelection<Feature>
 	thumb: InfoThumb
+	details: InfoDetails
 	
 	title: D3DataSelection<Feature>
 	
@@ -30,10 +30,6 @@ export class InfoBox extends ComponentBase {
 			.style('opacity', 0)
 			.style('margin-top', '-20px')
 		
-		this.thumbContainer = root
-			.append('div')
-			.classed('thumb-container', true)
-		
 		this.title = root
 			.append('div')
 			.classed('title', true)
@@ -42,10 +38,20 @@ export class InfoBox extends ComponentBase {
 		this.fadeIn()
 	}
 	
+	onResize(rect: ClientRect) {
+		if (this.thumb) {
+			this.thumb.resize(rect)
+		}
+		
+		if (this.details) {
+			this.details.resize(rect)
+		}
+	}
+	
 	expand() {
 		this.state = 'sidebar'
 		this.root.classed('expanded', true)
-		setTimeout(this.addContentsDetails, FADE_DURATION * 2)
+		setTimeout(this.initDetails, FADE_DURATION * 2)
 	}
 	
 	remove = () => {
@@ -63,16 +69,20 @@ export class InfoBox extends ComponentBase {
 				this.app.removeComparison(this)
 			})
 		
-		this.thumb = new InfoThumb(this.thumbContainer, this.data)
+		this.thumb = new InfoThumb(this.root)
+		this.thumb.init()
 	}
 	
-	private addContentsDetails = () => {
+	private initDetails = () => {
 		if (this.data.properties.type !== 'region') {
 			this.title
 				.append('div')
 				.classed('subtitle', true)
 				.text(this.getSubtitle)
 		}
+		
+		this.details = new InfoDetails(this.root)
+		this.details.init()
 		
 		if (this.app.info.canCompare(this.data)) {
 			this.root

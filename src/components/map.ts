@@ -93,7 +93,7 @@ export class Map extends ComponentBase {
 			.append('g')
 			.classed('layers', true)
 		
-		this.worldLand = this.app.data.getShapes('world').features[0]
+		this.worldLand = this.app.data.getFeatures('world').features[0]
 		
 		this.addResizer((rect) => {
 			ocean

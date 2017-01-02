@@ -9,7 +9,8 @@ export type Resizer = (rect: ClientRect) => void
 export interface ComponentWrapper {
 	type?: string
 	id?: string
-	classes?: string[]
+	classes?: string[],
+	before?: string
 }
 
 export abstract class ComponentBase {
@@ -18,12 +19,14 @@ export abstract class ComponentBase {
 	relative = false
 	resizers: Resizer[] = []
 	rect: ClientRect
+	host: D3Selection
 	
 	get app(): App {
 		return window['app'] as App
 	}
 	
 	constructor(public root: D3Selection) {
+		this.host = root
 	}
 	
 	onInit() {}
@@ -32,7 +35,12 @@ export abstract class ComponentBase {
 	init() {
 		this.applyOptions(this.wrapper, {
 			'type': (t) => {
-				this.root = this.root.append(t)
+				let b = this.wrapper.before
+				if (b) {
+					this.root = this.root.insert(t, b)
+				} else {
+					this.root = this.root.append(t)
+				}
 			},
 			'classes': (c) => {
 				c.forEach(name => this.root.classed(name,  true))

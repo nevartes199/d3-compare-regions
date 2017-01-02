@@ -11,34 +11,23 @@ declare interface FeatureCollection {
 
 declare interface Feature {
 	geometry?: any
-	properties: FeatureData
+	properties: ItemData
 	type?: string
 }
 
-declare interface FeatureData {
+declare interface ItemData {
 	name: string
 	type: LayerType
 	has_sublayer: boolean
 	color?: string
 }
 
-declare interface RegionData {
-	region: string
-}
-
-declare interface CountryData extends RegionData {
-	country: string
-	country_code: string
-	region: string
-}
-
-declare interface StateData {
-	country: string
-	state: string
-	state_code: string
-}
-
-declare interface MapTransform {
-	scale?: number[]
-	translate?: number[]
+/**
+ * TODO: Describe here the data needed for showing the selection details
+ */
+declare interface ItemDetails {
+	sample: {
+		name: string
+		value: number
+	}[]
 }

@@ -43,9 +43,7 @@ export class App {
 	select = (data: Feature, shape: SVGPathElement) => {
 		let selection = this.map.selection
 		if (selection && selection.data === data) {
-			let parent = selection.layer.parent
-			this.info.showSidebar(parent.data)
-			this.map.select(parent.data, parent.shape)
+			this.deselect()
 		} else {
 			this.info.showSidebar(data)
 			this.map.select(data, d3.select(shape))
