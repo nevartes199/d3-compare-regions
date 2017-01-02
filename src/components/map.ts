@@ -16,7 +16,7 @@ const MAX_SCALE = 48
 
 export interface MapSelection {
 	data: Feature,
-	element: D3Selection,
+	shape: D3Selection,
 	layer: MapLayer
 }
 
@@ -124,28 +124,18 @@ export class Map extends ComponentBase {
 		return this.layers[index]
 	}
 	
-	select = (target: Feature, targetEl: SVGPathElement) => {
+	select = (target: Feature, shape: D3Selection) => {
 		if (this.selection) {
-			this.selection.element.classed('selected', false)
-			if (this.selection.data === target) {
-				// If the seletected feature has no sublayers, give a different return
-				// to notify that the parent should be selected instead
-				let currentLayer = this.layers[this.layerIndex]
-				return currentLayer.parent
-			} else {
-				
-			}
+			this.selection.shape.classed('selected', false)
 		}
+		shape.classed('selected', true)
 		
 		this.layerIndex = LAYER_ORDER.indexOf(target.properties.type)
 		
-		let targetSelection = d3.select(targetEl)
-		targetSelection.classed('selected', true)
-		
 		this.selection = {
 			data: target,
-			element: targetSelection,
-			layer: this.layers[this.layers.length - 1]
+			shape: shape,
+			layer: this.layers[this.layerIndex]
 		}
 		
 		this.cameraFocus(target)
@@ -154,28 +144,11 @@ export class Map extends ComponentBase {
 		if (this.selection.data.properties.has_sublayer) {
 			this.initLayer(this.layerIndex + 1, this.selection)
 		}
-		
-		return true
-	}
-	
-	deselect = (): Feature => {
-		// Select the parent layer
-		let layer = this.layers[this.layerIndex]
-		let parent = layer.parent
-		
-		if (!parent) {
-			this.clearSelection()
-			return null
-		}
-		
-		// Select parent of the current layer
-		this.select(parent.data, parent.element.node() as SVGPathElement)
-		return parent.data
 	}
 	
 	clearSelection = () => {
 		if (this.selection) {
-			this.selection.element.classed('selected', false)
+			this.selection.shape.classed('selected', false)
 		}
 		
 		this.layerIndex = 0

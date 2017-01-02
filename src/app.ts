@@ -45,19 +45,24 @@ export class App {
 		if (selection && selection.data === data) {
 			let parent = selection.layer.parent
 			this.info.showSidebar(parent.data)
-			this.map.select(parent.data, parent.element.node() as SVGPathElement)
+			this.map.select(parent.data, parent.shape)
 		} else {
 			this.info.showSidebar(data)
-			this.map.select(data, shape)
+			this.map.select(data, d3.select(shape))
 		}
 	}
 	
 	deselect = () => {
-		let newSelection = this.map.deselect()
-		if (newSelection) {
-			this.info.showSidebar(newSelection)
-		} else {
-			this.info.removeSidebar()
+		let selection = this.map.selection
+		if (selection) {
+			let parent = selection.layer.parent
+			if (parent) {
+				this.info.showSidebar(parent.data)
+				this.map.select(parent.data, parent.shape)
+			} else {
+				this.info.removeSidebar()
+				this.map.clearSelection()
+			}
 		}
 	}
 	
@@ -67,7 +72,7 @@ export class App {
 			return
 		}
 		
-		this.info.addToComparison(selection.data, selection.element.node() as SVGPathElement)
+		this.info.addToComparison(selection.data, selection.shape.node() as SVGPathElement)
 		setTimeout(this.map.clearSelection, 300)
 	}
 	
