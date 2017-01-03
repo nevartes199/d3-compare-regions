@@ -39,8 +39,8 @@ export class MapLayer extends ComponentBase {
 			.on('click', function(feature) {
 				selectionCallback(feature, this as SVGPathElement)
 			})
-			.on('mouseenter', this.app.info.showLegend)
-			.on('mouseleave', this.app.info.removeLegend)
+			.on('mouseenter', this.app.overlay.showLegend)
+			.on('mouseleave', this.app.overlay.removeLegend)
 		
 		let boundaries = this.root
 			.append('g')

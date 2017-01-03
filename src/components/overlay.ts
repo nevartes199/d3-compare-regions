@@ -91,5 +91,9 @@ export class MapOverlay extends ComponentBase {
 	removeFromComparison(box: InfoBox) {
 		this.comparison.splice(this.comparison.indexOf(box), 1)
 		box.remove()
+		
+		if (this.sidebar && this.comparison.length === COMPARISON_MAX_ITEMS - 1) {
+			this.sidebar.addComparisonButton()
+		}
 	}
 }

@@ -11,7 +11,7 @@ export class App {
 	lastRect: ClientRect
 	
 	map: Map
-	info: MapOverlay
+	overlay: MapOverlay
 	
 	constructor(public host: Element) {
 		this.data = new Data()
@@ -20,11 +20,11 @@ export class App {
 		this.root.classed('viz-container', true)
 		
 		this.map = new Map(this.root)
-		this.info = new MapOverlay(this.root)
+		this.overlay = new MapOverlay(this.root)
 		
 		this.components = [
 			this.map,
-			this.info
+			this.overlay
 		]
 		
 		window['app'] = this
@@ -45,7 +45,7 @@ export class App {
 		if (selection && selection.data === data) {
 			this.deselect()
 		} else {
-			this.info.showSidebar(data)
+			this.overlay.showSidebar(data)
 			this.map.select(data, d3.select(shape))
 		}
 	}
@@ -55,10 +55,10 @@ export class App {
 		if (selection) {
 			let parent = selection.layer.parent
 			if (parent) {
-				this.info.showSidebar(parent.data)
+				this.overlay.showSidebar(parent.data)
 				this.map.select(parent.data, parent.shape)
 			} else {
-				this.info.removeSidebar()
+				this.overlay.removeSidebar()
 				this.map.clearSelection()
 			}
 		}
@@ -66,19 +66,19 @@ export class App {
 	
 	compare = () => {
 		let selection = this.map.selection
-		if (!selection || !this.info.canCompare(selection.data)) {
+		if (!selection || !this.overlay.canCompare(selection.data)) {
 			return
 		}
 		
-		this.info.addToComparison(selection.data, selection.shape.node() as SVGPathElement)
+		this.overlay.addToComparison(selection.data, selection.shape.node() as SVGPathElement)
 		setTimeout(() => {
 			this.map.clearSelection()
-			this.info.removeLegend()
+			this.overlay.removeLegend()
 		}, 300)
 	}
 	
 	removeComparison(box: InfoBox) {
-		this.info.removeFromComparison(box)
+		this.overlay.removeFromComparison(box)
 		this.map.cameraRefresh()
 	}
 }

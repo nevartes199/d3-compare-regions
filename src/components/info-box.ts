@@ -51,7 +51,7 @@ export class InfoBox extends ComponentBase {
 	expand() {
 		this.state = 'sidebar'
 		this.root.classed('expanded', true)
-		setTimeout(this.initDetails, FADE_DURATION * 2)
+		setTimeout(this.initDetails, FADE_DURATION)
 	}
 	
 	remove = () => {
@@ -73,6 +73,15 @@ export class InfoBox extends ComponentBase {
 		this.thumb.init()
 	}
 	
+	
+	addComparisonButton = () => {
+		this.root
+			.append('button')
+			.classed('compare', true)
+			.text('Compare with other region')
+			.on('click', this.app.compare)
+	}
+	
 	private initDetails = () => {
 		if (this.data.properties.type !== 'region') {
 			this.title
@@ -84,12 +93,8 @@ export class InfoBox extends ComponentBase {
 		this.details = new InfoDetails(this.root)
 		this.details.init()
 		
-		if (this.app.info.canCompare(this.data)) {
-			this.root
-				.append('button')
-				.classed('compare', true)
-				.text('Compare with other region')
-				.on('click', this.app.compare)
+		if (this.app.overlay.canCompare(this.data)) {
+			this.addComparisonButton()
 		}
 	}
 	

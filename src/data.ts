@@ -69,8 +69,6 @@ export class Data {
 			]
 		}
 		
-		console.log(details)
-		
 		// Delay the callback return to feel like a network request is being made
 		setTimeout(() => {
 			callback(details)

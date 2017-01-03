@@ -8,7 +8,8 @@ const TsConfigPathsPlugin = require('awesome-typescript-loader').TsConfigPathsPl
 const ENV = process.env.npm_lifecycle_event
 const isProd = ENV === 'build'
 
-const HREF = isProd ? '/d3-compare-regions/' : '/'
+const PROD_BASE_HREF = '/d3-compare-regions/'
+const BASE_HREF = isProd ? PROD_BASE_HREF : '/'
 
 const PROD_PLUGINS = isProd ? [
 		new webpack.optimize.UglifyJsPlugin({
@@ -21,12 +22,12 @@ const PROD_PLUGINS = isProd ? [
 module.exports = {
 	devtool: isProd ? undefined : 'source-map',
 	entry: {
-		app: src('app'),
+		viz: src('app'),
 		demo: src('demo')
 	},
 	output: {
 		path: root('dist'),
-		publicPath: HREF,
+		publicPath: BASE_HREF,
 		filename: '[name]-[hash].js',
 		chunkFilename: isProd ? '[id].[hash].chunk.js' : '[id].chunk.js'
 	},
@@ -59,7 +60,7 @@ module.exports = {
 
 		new HtmlWebpackPlugin({
 			inject: 'body',
-			chunks: ['common', 'app', 'demo'],
+			chunks: ['common', 'viz', 'demo'],
 			template: src('demo.ejs'),
 			filename: 'index.html',
 			favicon: root('public/favicon.png')
