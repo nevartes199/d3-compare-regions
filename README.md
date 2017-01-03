@@ -82,7 +82,7 @@ const PROD_HREF = '/d3-compare-regions/'
 
 Since Github pages publishes this repo's demo at "http://snolflake.github.io/d3-compare-regions/" we need to set `PROD_BASE_HREF` to "/d3-compare-regions/". If you're going to publish the visualization demo in another path set `PROD_BASE_HREF` to that path and, if doesn't have an URL prefix at all, set it to "/".
 
-Once we have finished the visualization, if you want to consume it from within another application or something, we can tweak the build script to not generate the `index.html` and everything, instead to generate only a `viz.js` which can be initialized from regular JavaScript pretty much like what happends in the [`demo.ts`]() file.
+Once we have finished the visualization, if you want to consume it from within another application or something, we can tweak the build script to not generate the `index.html` and everything, instead to generate only a `viz.js` which can be initialized from regular JavaScript pretty much like what happends in the [`demo.ts`](src/demo.ts) file.
 
 
 ----------
