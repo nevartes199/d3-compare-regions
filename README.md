@@ -36,7 +36,7 @@ Each component have its implementation divided in several methods as well to imp
 Since most methods are self-explanatory I've only added documentation to the more unintuitive parts and I can add more documentation to specific parts upon request.
 
 ## Technology stack
-The main technologies used in this app (aside D3.js of course) are [TypeScript](https://www.typescriptlang.org/docs/tutorial.html), [Sass](http://sass-lang.com/guide] and [Webpack](https://webpack.js.org/concepts/).
+The main technologies used in this app (aside D3.js of course) are [TypeScript](https://www.typescriptlang.org/docs/tutorial.html), [Sass](http://sass-lang.com/guide) and [Webpack](https://webpack.js.org/concepts/).
 
 ### TypeScript
 Regular JavaScript can be used within `.ts` files. TypeScript basically only adds type safety to the code.
@@ -51,21 +51,27 @@ Webpack in the other hand is quite difficult to learn and configure, however all
 
 ## Running locally
 1 - Make sure you have the latest source version from your branch:
-    - `git fetch origin;`
-    - `git checkout daniel;`
-    - `git pull origin daniel;`
+
+ - `git fetch origin;`
+ - `git checkout daniel;`
+ - `git pull origin daniel;`
+ 
 2 - And have all dependencies installed:
-    - `npm run install;`
+ - `npm run install;`
+ 
 3 - Then start the development server:
-    - `npm run start:hmr;`
+ - `npm run start:hmr;`
+ ]
 4 - Check if you can access the app at:
-    - http://localhost:8080
+ - http://localhost:8080
 
 You can contact me if you get in trouble in any of these steps.
 
 ## Developing
+I'd recommend you to use a TypeScript aware editor. WebStorm and vscode are two good options.
+Once you have the local server running you can edit whatever files you need and once you save them, webpack will detect the changes and reload the page in your web browser when needed.
 
-## Building for publication
+## Building
 You can build the visualization with `npm run build;`. Once it is complete, a "dist" folder will be created and its contents can be put on the document root of a webserver. The latest build output can be found, for example, in the [gh-pages](https://github.com/snolflake/d3-compare-regions/tree/gh-pages) branch of this repo.
 
 ### Base Url
