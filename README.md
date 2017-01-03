@@ -61,7 +61,7 @@ Webpack in the other hand is quite difficult to learn and configure, however all
  
 3 - Then start the development server:
  - `npm run start:hmr;`
- ]
+
 4 - Check if you can access the app at:
  - http://localhost:8080
 
