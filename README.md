@@ -57,7 +57,7 @@ Webpack in the other hand is quite difficult to learn and configure, however all
  - `git pull origin daniel;`
  
 2 - And have all dependencies installed:
- - `npm run install;`
+ - `npm install;`
  
 3 - Then start the development server:
  - `npm run start:hmr;`
