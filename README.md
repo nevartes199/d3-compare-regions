@@ -65,14 +65,8 @@ Webpack in the other hand is quite difficult to learn and configure, however all
 4 - Check if you can access the app at:
  - http://localhost:8080
 
-You can contact me if you get in trouble in any of these steps.
-
-## Developing
-I'd recommend you to use a TypeScript aware editor. WebStorm and vscode are two good options.
-Once you have the local server running you can edit whatever files you need and once you save them, webpack will detect the changes and reload the page in your web browser when needed.
-
 ## Building
-You can build the visualization with `npm run build;`. Once it is complete, a "dist" folder will be created and its contents can be put on the document root of a webserver. The latest build output can be found, for example, in the [gh-pages](https://github.com/snolflake/d3-compare-regions/tree/gh-pages) branch of this repo.
+You can build the visualization with `npm run build;`. Once it is complete, a "dist" folder will be created.
 
 ### Base Url
 One **very important** setting for publishing the visualization somewhere else is this line from the [webpack config](webpack.config.js):
@@ -80,13 +74,4 @@ One **very important** setting for publishing the visualization somewhere else i
 const PROD_HREF = '/d3-compare-regions/'
 ```
 
-Since Github pages publishes this repo's demo at "http://snolflake.github.io/d3-compare-regions/" we need to set `PROD_BASE_HREF` to "/d3-compare-regions/". If you're going to publish the visualization demo in another path set `PROD_BASE_HREF` to that path and, if doesn't have an URL prefix at all, set it to "/".
 
-Once we have finished the visualization, if you want to consume it from within another application or something, we can tweak the build script to not generate the `index.html` and everything, instead to generate only a `viz.js` which can be initialized from regular JavaScript pretty much like what happends in the [`demo.ts`](src/demo.ts) file.
-
-
-----------
-
-Hopefully there is already info enough to get you started. If not don't worry, I will be available to clarify any questions.
-
-Good luck!
