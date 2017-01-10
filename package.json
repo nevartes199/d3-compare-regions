@@ -15,9 +15,9 @@
     "type": "git",
     "url": "git+https://github.com/snolflake/d3-region-comparison.git"
   },
-  "author": "Carlos Guimaraes <snolflake@gmail.com>",
-  "license": "UNLICENSED",
-  "private": true,
+  "author": "",
+  "license": "NA",
+  "private": false,
   "bugs": {
     "url": "https://github.com/snolflake/d3-region-comparison/issues"
   },
