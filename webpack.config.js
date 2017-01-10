@@ -62,8 +62,7 @@ module.exports = {
 			inject: 'body',
 			chunks: ['common', 'viz', 'demo'],
 			template: src('demo.ejs'),
-			filename: 'index.html',
-			favicon: root('public/favicon.png')
+			filename: 'index.html'
 		}),
 
 
