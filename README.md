@@ -2,7 +2,7 @@
 
 ## Map Data
 The map data is mostly manipulated/tweaked using a mapshaper script to simplify the actual implementation of the app as much as we can.
-More documentation can be found on the [script file](data/parse) itself.
+More documentation can be found on the [script file](data/parse) itself
 
 The parse operation generates a [`map.json`](data/map.json) file which is bundled within the app the next the it is built.
 Everytime you edit something on the data folder or the parse script, run `npm run parse` to generate the file again.
