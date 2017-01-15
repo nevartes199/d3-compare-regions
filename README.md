@@ -19,7 +19,6 @@ Countries have a field `country_code` which is its [alpha-3 code](https://en.wik
 States have a `state_code` which is a two letter ZIP code designed for that state. Not all countries have a two letter ZIP code for their states available, but at least for the countries that we are using now, all of them have state codes.
 
 The application has a [data provider](src/data.ts) and there you can find how the map data is loaded.
-There you can find as well, placeholders for calculating the color of each map item in the heatmap, and a sample implementation for retrieving the details for the current selection.
 
 ## Components
 The implementation is divided into [several components](src/components).
@@ -27,10 +26,6 @@ The curent hierarchy is as follow:
 - app.ts Takes care of the selection logic and orchestrates the map and overlay behaviors
     - map.ts Handles the camera
         - map-layer.ts
-    - overlay.ts Manages the creation and manipulation of info-boxes over the map
-        - info-box.ts The legend, the sidebar and the comparison boxes are all infoboxes
-            - info-thumb.ts Creates a thumbnail of the map item for the its parent infobox data
-            - info-details.ts Fetch details of the current item and generate a visualization for it
 
 Each component have its implementation divided in several methods as well to improve readability of the code.
 Since most methods are self-explanatory I've only added documentation to the more unintuitive parts and I can add more documentation to specific parts upon request.
@@ -39,34 +34,27 @@ Since most methods are self-explanatory I've only added documentation to the mor
 The main technologies used in this app (aside D3.js of course) are [TypeScript](https://www.typescriptlang.org/docs/tutorial.html), [Sass](http://sass-lang.com/guide) and [Webpack](https://webpack.js.org/concepts/).
 
 ### TypeScript
-Regular JavaScript can be used within `.ts` files. TypeScript basically only adds type safety to the code.
-
-If you ran into any issues with TypeScript, it is most likely that you can workaround it by simply removing type safety checks. Let's say you get an error telling that `myMethod(foo)` is incompatible with something else, if you use `myMethod(foo as any)` it will not complain anymore.
+Regular JavaScript can be used within `.ts` files.
+If you ran into any issues with TypeScript, it is most likely that you can workaround it by simply removing type safety checks.
 
 ### Sass
 Just like TypeScript, regular CSS can be used on `.scss` files so no mystery here either.
 
 ### Webpack
-Webpack in the other hand is quite difficult to learn and configure, however all configurations needed are [already here](webpack.config.js) for you to use. At least the user base of webpack is huge so it will be easy to find documentation for whatever changes you may need in the future.
+All configurations needed are at webpack.config.js for you to use.
 
 ## Running locally
-1 - Make sure you have the latest source version from your branch:
-
- - `git fetch origin;`
- - `git checkout daniel;`
- - `git pull origin daniel;`
- 
-2 - And have all dependencies installed:
+1 - Make sure you have the latest source version from your branch and have all dependencies installed:
  - `npm install;`
  
-3 - Then start the development server:
+2 - Start the development server:
  - `npm run start:hmr;`
 
-4 - Check if you can access the app at:
+3 - Access the app at:
  - http://localhost:8080
 
 ## Building
-You can build the visualization with `npm run build;`. Once it is complete, a "dist" folder will be created.
+Build the visualization with `npm run build;`. Once it is complete, a "dist" folder will be created.
 
 ### Base Url
 One **very important** setting for publishing the visualization somewhere else is this line from the [webpack config](webpack.config.js):
