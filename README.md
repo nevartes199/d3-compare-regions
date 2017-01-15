@@ -1,4 +1,4 @@
-#d3-compare-regions
+#d3-compare-region
 
 ## Map Data
 The map data is mostly manipulated/tweaked using a mapshaper script to simplify the actual implementation of the app as much as we can.
