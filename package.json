@@ -16,7 +16,7 @@
     "url": "git+https://github.com/snolflake/d3-region-comparison.git"
   },
   "author": "",
-  "license": "NA",
+  "license": "MIT https://api.github.com/licenses/mit",
   "private": false,
   "bugs": {
     "url": "https://github.com/snolflake/d3-region-comparison/issues"
