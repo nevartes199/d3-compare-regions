@@ -7,6 +7,7 @@ div.info-box {
   width: $box-width;
   top: 16px;
   left: calc(100% - #{$sidebar-margin} - #{$box-width});
+  visibility: hidden;
 
   transform-origin: 50% 100%;
 
@@ -31,6 +32,7 @@ div.info-box {
     overflow: hidden;
     font-size: 18px;
     font-weight: bold;
+    display: none;
     .subtitle {
       text-transform: capitalize;
       color: #999;
@@ -45,6 +47,7 @@ div.info-box {
     width: calc(100% - 16px);
     bottom: 0;
     left: 0;
+    display: none;
   }
 
   &.pinned {
